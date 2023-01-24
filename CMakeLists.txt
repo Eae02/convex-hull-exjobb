@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(ch)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libs/cgal)
-set(CMAKE_PREFIX_PATH /home/erik/convex_hull/libs/cgal/Installation/lib/cmake/CGAL)
+set(CMAKE_PREFIX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libs/cgal/Installation/lib/cmake/CGAL)
 
 file(GLOB_RECURSE SOURCE_FILES src/*.cpp)
 
