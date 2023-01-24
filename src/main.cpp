@@ -7,6 +7,8 @@
 
 template <typename T>
 void readRunAndOutput(int numPoints, const std::function<void(std::vector<point<T>>&)>& run) {
+
+	auto beforeTime = std::chrono::high_resolution_clock::now();
 	std::vector<point<T>> points;
 	points.reserve(numPoints);
 	for (int i = 0; i < numPoints; i++) {
@@ -24,7 +26,8 @@ void readRunAndOutput(int numPoints, const std::function<void(std::vector<point<
 		std::cout << point.x << " " << point.y << "\n";
 	}
 	
-	std::cerr << "elapsed time: " << std::chrono::duration<double, std::milli>(endTime - startTime).count() << "ms\n";
+	std::cerr << "elapsed time: " << std::chrono::duration<double, std::milli>(endTime - beforeTime).count() << "ms\n";
+	std::cerr << "compute time: " << std::chrono::duration<double, std::milli>(endTime - startTime).count() << "ms\n";
 }
 
 [[noreturn]] void printImplementationNamesAndExit() {
