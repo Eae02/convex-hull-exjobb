@@ -19,6 +19,8 @@ void readRunAndOutput(int numPoints, const std::function<void(std::vector<point<
 	run(points);
 	auto endTime = std::chrono::high_resolution_clock::now();
 	
+	std::rotate(points.begin(), std::min_element(points.begin(), points.end()), points.end());
+	
 	std::cout << points.size() << "\n";
 	for (const auto& point : points) {
 		std::cout << point.x << " " << point.y << "\n";
