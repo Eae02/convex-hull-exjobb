@@ -11,19 +11,11 @@
 // lowerTangent denotes if we are finding the lower or upper tangent.
 template <typename T>
 std::pair<int,int> find_tangent(const std::vector<point<T>>& A, const std::vector<point<T>>& B, int sA, int sB, bool lowerTangent) {
-	int step = 0;
-	if (lowerTangent) {
-		if ( A[sA].y <= B[sB].y) {
-			step = 1; // we are stepping forwards
-		} else {
-			step = -1;
-		}
+	int step = 0; 
+	if ( A[sA].y <= B[sB].y) {
+		step = 1; // we are stepping forwards
 	} else {
-		if ( A[sA].y <= B[sB].y) {
-			step = -1; // we are stepping backwards
-		} else {
-			step = 1;
-		}
+		step = -1; // we are stepping backwards
 	}
 
 	int i,j;
@@ -93,7 +85,7 @@ void ch(std::vector<point<T>>& S) {
 			lAi = i;
 		}
 		if (A[i].y > A[uAi].y) {
-			lAi = i;
+			uAi = i;
 		}
 	}
 	for (int i = 0; i < B.size(); i++) {
@@ -101,7 +93,7 @@ void ch(std::vector<point<T>>& S) {
 			lBi = i;
 		}
 		if (B[i].y > B[uBi].y) {
-			lBi = i;
+			uBi = i;
 		}
 	}
 
