@@ -45,7 +45,7 @@ std::pair<int,int> find_tangent(const std::vector<point<T>>& A, const std::vecto
 		}
 		done = true;
 	}
-	return std::tie(i,j);
+	return std::make_pair(i,j);
 }
 
 
