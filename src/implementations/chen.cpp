@@ -85,9 +85,9 @@ bool Hull2D(std::vector<point<T>>& pts, int m, int H) {
 template <typename T>
 void runChen(std::vector<point<T>>& pts) {
 	if (pts.size() <= 2) return;
-    int t = 1;
+    long long t = 1;
     while (true) {
-        int m = std::min(int(pts.size()),1 << (1<<t));
+        int m = std::min((long long) pts.size(),1LL << (1LL<<t));
         if (m<1) { // Catch overflow
             m = pts.size();
         }

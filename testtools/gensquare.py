@@ -1,4 +1,4 @@
-#Usage: python3 gen.py seed n
+#Usage: python3 gensquare.py seed n
 
 import sys
 

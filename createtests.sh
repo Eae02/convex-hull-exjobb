@@ -2,23 +2,54 @@
 
 rm -r .testcases
 mkdir .testcases
-mkdir .testcases/small
-for testn in {1..100}
-do
-    python3 testtools/gen.py $testn 100 > .testcases/small/$testn.in
-    ./ch.bin impl1 < .testcases/small/$testn.in > .testcases/small/$testn.ans
-done
 
-mkdir .testcases/medium
-for testn in {101..110}
+# Unit square tests
+echo "Creating unit square tests"
+mkdir .testcases/square
+mkdir .testcases/square/small
+for testn in {1..10}
 do
-    python3 testtools/gen.py $testn 10000 > .testcases/medium/$testn.in
-    ./ch.bin impl1 < .testcases/medium/$testn.in > .testcases/medium/$testn.ans
+    python3 testtools/gensquare.py $testn 100 > .testcases/square/small/$testn.in
+    ./ch.bin impl1 < .testcases/square/small/$testn.in > .testcases/square/small/$testn.ans
 done
+echo "Small done"
+mkdir .testcases/square/medium
+for testn in {11..20}
+do
+    python3 testtools/gensquare.py $testn 10000 > .testcases/square/medium/$testn.in
+    ./ch.bin impl1 < .testcases/square/medium/$testn.in > .testcases/square/medium/$testn.ans
+done
+echo "Medium done"
+mkdir .testcases/square/large
+for testn in {21..30}
+do
+    python3 testtools/gensquare.py $testn 100000 > .testcases/square/large/$testn.in
+    time ./ch.bin impl1 < .testcases/square/large/$testn.in > .testcases/square/large/$testn.ans
+done
+echo "Large done"
 
-mkdir .testcases/large
-for testn in {111..120}
+
+# unit circle tests
+echo "Creating unit circle tests"
+mkdir .testcases/circle
+mkdir .testcases/circle/small
+for testn in {1..10}
 do
-    python3 testtools/gen.py $testn 1000000 > .testcases/large/$testn.in
-    time ./ch.bin impl1 < .testcases/large/$testn.in > .testcases/large/$testn.ans
+    python3 testtools/gencirc.py $testn 100 > .testcases/circle/small/$testn.in
+    ./ch.bin impl1 < .testcases/circle/small/$testn.in > .testcases/circle/small/$testn.ans
 done
+echo "Small done"
+mkdir .testcases/circle/medium
+for testn in {11..20}
+do
+    python3 testtools/gencirc.py $testn 10000 > .testcases/circle/medium/$testn.in
+    ./ch.bin impl1 < .testcases/circle/medium/$testn.in > .testcases/circle/medium/$testn.ans
+done
+echo "Medium done"
+mkdir .testcases/circle/large
+for testn in {21..30}
+do
+    python3 testtools/gencirc.py $testn 100000 > .testcases/circle/large/$testn.in
+    time ./ch.bin impl1 < .testcases/circle/large/$testn.in > .testcases/circle/large/$testn.ans
+done
+echo "Large done"
