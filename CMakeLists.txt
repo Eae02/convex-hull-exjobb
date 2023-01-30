@@ -1,8 +1,13 @@
 cmake_minimum_required(VERSION 3.16)
 project(ch)
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libs/cgal)
-set(CMAKE_PREFIX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libs/cgal/Installation/lib/cmake/CGAL)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/libs/cgal/CMakeLists.txt")
+	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libs/cgal)
+	set(CMAKE_PREFIX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libs/cgal/Installation/lib/cmake/CGAL)
+	set(HAS_CGAL TRUE)
+else()
+	message(WARNING "cgal not found, cgal implementations will not be compiled")
+endif()
 
 file(GLOB_RECURSE SOURCE_FILES src/*.cpp)
 
@@ -31,10 +36,14 @@ target_link_options(ch PRIVATE
 	$<$<CONFIG:Debug>:-fsanitize=address,undefined>
 )
 
-find_package(CGAL REQUIRED COMPONENTS Core)
 find_package(Boost REQUIRED)
+target_link_libraries(ch PRIVATE Boost::boost)
 
-target_link_libraries(ch PRIVATE CGAL::CGAL Boost::boost)
+if (${HAS_CGAL})
+	find_package(CGAL REQUIRED COMPONENTS Core)
+	target_link_libraries(ch PRIVATE CGAL::CGAL)
+	target_compile_definitions(ch PRIVATE HAS_CGAL)
+endif()
 
 find_package(TBB)
 if (${TBB_FOUND})

@@ -1,3 +1,4 @@
+#ifdef HAS_CGAL
 #include "../hull_impl.hpp"
 #include "../point.hpp"
 
@@ -41,3 +42,4 @@ DEF_HULL_IMPL({
 	.runInt = nullptr,
 	.runDouble = createCGALRunFunction(&CGAL::ch_graham_andrew)
 });
+#endif
