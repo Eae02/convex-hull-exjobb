@@ -92,11 +92,12 @@ void runChen(std::vector<point<T>>& pts) {
 	if (pts.size() <= 2) return;
     long long t = 1;
     while (true) {
-        int m = std::min((long long) pts.size(),1LL << (1LL<<t));
-        if (m<1) { // Catch overflow
-            m = pts.size();
+        int H = std::min((long long) pts.size(),1LL << (1LL<<t));
+        if (H<1) { // Catch overflow
+            H = pts.size();
         }
-        if (Hull2D(pts,m,m)) {
+        // Refinement idea 2 from chans paper, put m = H*logH
+        if (Hull2D(pts,H*(1LL<<t),H)) {
             return;
         }
         t++;
