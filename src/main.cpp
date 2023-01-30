@@ -4,16 +4,24 @@
 #include <algorithm>
 #include <string_view>
 #include <chrono>
+#include <cassert>
+#include <charconv>
 
 template <typename T>
 void readRunAndOutput(int numPoints, const std::function<void(std::vector<point<T>>&)>& run) {
-
 	auto beforeTime = std::chrono::high_resolution_clock::now();
+	
 	std::vector<point<T>> points;
 	points.reserve(numPoints);
 	for (int i = 0; i < numPoints; i++) {
+		std::string line;
+		std::getline(std::cin, line);
+		size_t spacePos = line.find(' ');
+		assert(spacePos != std::string::npos);
+		
 		T x, y;
-		std::cin >> x >> y;
+		std::from_chars(&line[0], &line[spacePos], x);
+		std::from_chars(&line[spacePos + 1], &line[line.size()], y);
 		points.emplace_back(x, y);
 	}
 	
@@ -83,19 +91,16 @@ int main(int argv, char** argc) {
 		return 1;
 	}
 	
-	int dimension;
-	std::cin >> dimension;
+	std::string line;
+	std::getline(std::cin, line);
+	int dimension = std::stoi(line);
 	if (dimension != 2) {
 		std::cout << "Dimension must be 2\n";
 		return 1;
 	}
 	
-	//skip to end of line
-	std::string _line;
-	std::getline(std::cin, _line);
-	
-	int numPoints;
-	std::cin >> numPoints;
+	std::getline(std::cin, line);
+	int numPoints = std::stoi(line);
 	
 	if (useIntVersion) {
 		readRunAndOutput<int64_t>(numPoints, implIterator->runInt);
