@@ -32,8 +32,17 @@ target_link_options(ch PRIVATE
 )
 
 find_package(CGAL REQUIRED COMPONENTS Core)
+find_package(Boost REQUIRED)
 
-target_link_libraries(ch PRIVATE CGAL::CGAL)
+target_link_libraries(ch PRIVATE CGAL::CGAL Boost::boost)
+
+find_package(TBB)
+if (${TBB_FOUND})
+	target_link_libraries(ch PRIVATE TBB::tbb)
+	target_compile_definitions(ch PRIVATE HAS_TBB)
+else()
+	message(WARNING "tbb not found, parallel quickhull will not be compiled")
+endif()
 
 set_target_properties(ch PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}

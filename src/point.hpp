@@ -3,6 +3,12 @@
 #include <cstdint>
 #include <tuple>
 
+enum class side {
+	left,
+	right,
+	on
+};
+
 template <typename T>
 struct point {
 	T x, y;
@@ -17,12 +23,22 @@ struct point {
 	point operator/(T o) const { return { x/o, y/o }; }
 	bool operator==(point o) const { return x==o.x && y==o.y; };
 	bool operator<(point o) const { return std::tie(x, y) < std::tie(o.x, o.y); };
+	bool operator>(point o) const { return std::tie(x, y) > std::tie(o.x, o.y); };
 	T dot(point o) const { return x*o.x + y*o.y; }
 	T cross(point b) const { return x*b.y - y*b.x; }
 	T cross(point b, point o) const { return (*this - o).cross(b - o); }
 	T len2() const { return x*x + y*y; }
 	point rotated90CW() const { return point(y, -x); };
 	point rotated90CCW() const { return point(-y, x); };
+	
+	side sideOfLine(point lineStart, point lineEnd, T epsilon = 0) const {
+		auto c = cross(lineEnd, lineStart);
+		if (c > epsilon)
+			return side::right;
+		if (c < -epsilon)
+			return side::left;
+		return side::on;
+	}
 };
 using pointi = point<int64_t>;
 using pointd = point<double>;
