@@ -28,14 +28,11 @@ bool Hull2DMerge(const std::vector<std::vector<point<T>>>& Pdiv, int H, std::vec
     for (int i = 0; i < H; i++) {
         // For each hull find tangent from result.back()
         for (int pi = 0; pi<p; pi++) {
-            // if (result.back() == Pdiv[pi][indices[pi]]) {
-            //     indices[pi]++;
-            //     indices[pi]%=Pdiv[pi].size();
-            // }
             while(true) {
                 point<T> cur = Pdiv[pi][indices[pi]];
                 point<T> next = Pdiv[pi][(indices[pi]+1)%Pdiv[pi].size()];
-                if (cur.cross(next,result.back())<0 || (cur.cross(next,result.back())==0 && (cur-result.back()).len2() < (next-result.back()).len2())) {
+                side orientation = cur.sideOfLine(next,result.back());
+                if (orientation == side::right || (orientation == side::on && (cur-result.back()).len2() < (next-result.back()).len2())) {
                     indices[pi]++;
                     indices[pi]%=Pdiv[pi].size();
                 } else {
@@ -48,7 +45,8 @@ bool Hull2DMerge(const std::vector<std::vector<point<T>>>& Pdiv, int H, std::vec
         result.push_back(Pdiv[0][indices[0]]);
         for (int pi = 0; pi<p; pi++) {
             point<T> candidate = Pdiv[pi][indices[pi]];
-            if (result.back().cross(candidate,prevHullPoint) < 0 || (result.back().cross(candidate,prevHullPoint) == 0 && (result.back()-prevHullPoint).len2() < (candidate-prevHullPoint).len2())) {
+            side orientation = result.back().sideOfLine(candidate,prevHullPoint);
+            if (orientation == side::right || (orientation == side::on && (result.back()-prevHullPoint).len2() < (candidate-prevHullPoint).len2())) {
                 result.back() = candidate;
             }
         }
