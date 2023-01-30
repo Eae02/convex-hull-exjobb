@@ -18,7 +18,8 @@ std::pair<int,int> find_tangent(const std::vector<point<T>>& A, const std::vecto
 		step = -1; // we are stepping backwards
 	}
 
-	bool aStepFirst = step==1 != lowerTangent;
+	// It is important in which order we step around the A or B hull. If we do this incorrectly we might overstep and find the wrong tangent.
+	bool aStepFirst = (step==1) != lowerTangent;
 
 	int i,j;
 	i = sA;
@@ -28,35 +29,39 @@ std::pair<int,int> find_tangent(const std::vector<point<T>>& A, const std::vecto
 
 		if (aStepFirst) {
 			int nexti = (i+step +A.size())%A.size();
-			// If we are building lowerTangent we want to switch from CCW, if we are building upperTanget we want to switch from CW
-			if ((A[nexti].cross(B[j],A[i]) > 0 && lowerTangent) || (A[nexti].cross(B[j],A[i]) < 0 && !lowerTangent)) { 
+			side orientationA = A[nexti].sideOfLine(B[j],A[i]); // Line pointing leftwards from B to A
+			// If we are building lower tangent we want to lower the line (turn left) and vice versa.
+			if ((orientationA == side::left && lowerTangent) || (orientationA == side::right && !lowerTangent)) { 
 				i = nexti;
 				continue;
 			} 
 			// If colinear pick furthest point from B[j]
-			if (A[nexti].cross(B[j],A[i]) == 0 && (A[i]-B[j]).len2() < (A[nexti]-B[j]).len2()) {
+			if (orientationA == side::on && (A[i]-B[j]).len2() < (A[nexti]-B[j]).len2()) {
 				i = nexti;
 				continue;
 			}
 		}
 		int nextj = (j+step+B.size())%B.size();
-		if ((B[nextj].cross(B[j],A[i]) > 0 && lowerTangent) || (B[nextj].cross(B[j],A[i]) < 0 && !lowerTangent)) {
-			j = nextj;
+		side orientationB = B[nextj].sideOfLine(A[i],B[j]); // Line pointing rightwards from A to B
+		// If we are building lower tangent we want to lower the line (turn right) and vice versa.
+		if ((orientationB == side::right && lowerTangent) || (orientationB == side::left && !lowerTangent)) {
+			j = nextj; 
 			continue;
 		}
-		if (B[nextj].cross(B[j],A[i]) == 0 && (B[j]-A[i]).len2() < (B[nextj]-A[i]).len2()) {
+		if (orientationB == side::on && (B[j]-A[i]).len2() < (B[nextj]-A[i]).len2()) {
 			j = nextj;
 			continue;
 		}
 		if (!aStepFirst) {
 			int nexti = (i+step +A.size())%A.size();
-			// If we are building lowerTangent we want to switch from CCW, if we are building upperTanget we want to switch from CW
-			if ((A[nexti].cross(B[j],A[i]) > 0 && lowerTangent) || (A[nexti].cross(B[j],A[i]) < 0 && !lowerTangent)) { 
+			side orientationA = A[nexti].sideOfLine(B[j],A[i]); // Line pointing leftwards from B to A
+			// If we are building lower tangent we want to lower the line (turn left) and vice versa.
+			if ((orientationA == side::left && lowerTangent) || (orientationA == side::right && !lowerTangent)) { 
 				i = nexti;
 				continue;
 			} 
 			// If colinear pick furthest point from B[j]
-			if (A[nexti].cross(B[j],A[i]) == 0 && (A[i]-B[j]).len2() < (A[nexti]-B[j]).len2()) {
+			if (orientationA == side::on && (A[i]-B[j]).len2() < (A[nexti]-B[j]).len2()) {
 				i = nexti;
 				continue;
 			}
@@ -74,14 +79,15 @@ void ch(std::vector<point<T>>& S) {
 	if (n<4) { // base case
 		if (n == 3) {
 			// Check if the 3 points are on a straight line
-			if (S[1].cross(S[2],S[0]) == 0) {
+			side orientation = S[2].sideOfLine(S[0],S[1]);
+			if (orientation == side::on) {
 					S[1] = S[2];
 					S.pop_back();
 					return;
 			}
 
 			// Make sure in CCW order
-			if (S[1].cross(S[2],S[0]) < 0) {
+			if (orientation == side::right) {
 				 std::swap(S[1],S[2]);
 			}
 		}
@@ -124,6 +130,7 @@ void ch(std::vector<point<T>>& S) {
 	utA = upper_tangent.first;
 	utB = upper_tangent.second;
 	S.clear();
+	//Build the hull
 	for (int i = utA; i != ltA; i=(i+1)%A.size()) {
 		S.push_back(A[i]);
 	}
