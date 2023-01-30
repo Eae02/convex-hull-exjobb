@@ -18,21 +18,26 @@ std::pair<int,int> find_tangent(const std::vector<point<T>>& A, const std::vecto
 		step = -1; // we are stepping backwards
 	}
 
+	bool aStepFirst = step==1 != lowerTangent;
+
 	int i,j;
 	i = sA;
 	j = sB;
 	bool done = false;
 	while (!done) {
-		int nexti = (i+step +A.size())%A.size();
-		// If we are building lowerTangent we want to switch from CCW, if we are building upperTanget we want to switch from CW
-		if ((A[nexti].cross(B[j],A[i]) > 0 && lowerTangent) || (A[nexti].cross(B[j],A[i]) < 0 && !lowerTangent)) { 
-			i = nexti;
-			continue;
-		} 
-		// If colinear pick furthest point from B[j]
-		if (A[nexti].cross(B[j],A[i]) == 0 && (A[i]-B[j]).len2() < (A[nexti]-B[j]).len2()) {
-			i = nexti;
-			continue;
+
+		if (aStepFirst) {
+			int nexti = (i+step +A.size())%A.size();
+			// If we are building lowerTangent we want to switch from CCW, if we are building upperTanget we want to switch from CW
+			if ((A[nexti].cross(B[j],A[i]) > 0 && lowerTangent) || (A[nexti].cross(B[j],A[i]) < 0 && !lowerTangent)) { 
+				i = nexti;
+				continue;
+			} 
+			// If colinear pick furthest point from B[j]
+			if (A[nexti].cross(B[j],A[i]) == 0 && (A[i]-B[j]).len2() < (A[nexti]-B[j]).len2()) {
+				i = nexti;
+				continue;
+			}
 		}
 		int nextj = (j+step+B.size())%B.size();
 		if ((B[nextj].cross(B[j],A[i]) > 0 && lowerTangent) || (B[nextj].cross(B[j],A[i]) < 0 && !lowerTangent)) {
@@ -43,6 +48,20 @@ std::pair<int,int> find_tangent(const std::vector<point<T>>& A, const std::vecto
 			j = nextj;
 			continue;
 		}
+		if (!aStepFirst) {
+			int nexti = (i+step +A.size())%A.size();
+			// If we are building lowerTangent we want to switch from CCW, if we are building upperTanget we want to switch from CW
+			if ((A[nexti].cross(B[j],A[i]) > 0 && lowerTangent) || (A[nexti].cross(B[j],A[i]) < 0 && !lowerTangent)) { 
+				i = nexti;
+				continue;
+			} 
+			// If colinear pick furthest point from B[j]
+			if (A[nexti].cross(B[j],A[i]) == 0 && (A[i]-B[j]).len2() < (A[nexti]-B[j]).len2()) {
+				i = nexti;
+				continue;
+			}
+		}
+
 		done = true;
 	}
 	return std::make_pair(i,j);
