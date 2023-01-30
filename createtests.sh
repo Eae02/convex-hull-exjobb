@@ -23,7 +23,7 @@ echo "Medium done"
 mkdir .testcases/square/large
 for testn in {21..30}
 do
-    python3 testtools/gensquare.py $testn 100000 > .testcases/square/large/$testn.in
+    python3 testtools/gensquare.py $testn 1000000 > .testcases/square/large/$testn.in
     time ./ch.bin impl1 < .testcases/square/large/$testn.in > .testcases/square/large/$testn.ans
 done
 echo "Large done"
@@ -49,7 +49,7 @@ echo "Medium done"
 mkdir .testcases/circle/large
 for testn in {21..30}
 do
-    python3 testtools/gencirc.py $testn 100000 > .testcases/circle/large/$testn.in
+    python3 testtools/gencirc.py $testn 1000000 > .testcases/circle/large/$testn.in
     time ./ch.bin impl1 < .testcases/circle/large/$testn.in > .testcases/circle/large/$testn.ans
 done
 echo "Large done"
