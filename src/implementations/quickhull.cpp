@@ -6,6 +6,7 @@
 #include <span>
 #include <cmath>
 #include <thread>
+#include <list>
 
 template <typename T>
 struct PointNotOnHull {
@@ -15,7 +16,7 @@ template <> const point<double> PointNotOnHull<double>::value = { NAN, NAN };
 template <> const point<int64_t> PointNotOnHull<int64_t>::value = { INT64_MAX, INT64_MAX };
 
 struct ParallelData {
-	std::vector<std::thread> threads;
+	std::list<std::thread> threads;
 };
 
 template <typename T>
@@ -88,6 +89,7 @@ void runQuickhull(std::vector<point<T>>& pts, bool parallel) {
 	int remParallelDepth = 0;
 	
 	if (parallel) {
+		pdata = std::make_unique<ParallelData>();
 		while ((1 << remParallelDepth) <= std::thread::hardware_concurrency())
 			remParallelDepth++;
 	}
