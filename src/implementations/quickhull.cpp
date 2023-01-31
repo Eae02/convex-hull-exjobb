@@ -3,14 +3,27 @@
 
 #include <algorithm>
 #include <vector>
+#include <span>
+#include <cmath>
+#include <thread>
 
 template <typename T>
-void quickhullRec(const std::vector<point<T>>& pts, std::vector<point<T>>& output, point<T> leftHullPoint, point<T> rightHullPoint) {
-	if (pts.size() == 1) {
-		output.push_back(pts[0]);
-		return;
-	}
-	if (pts.size() == 0)
+struct PointNotOnHull {
+	static const point<T> value;
+};
+template <> const point<double> PointNotOnHull<double>::value = { NAN, NAN };
+template <> const point<int64_t> PointNotOnHull<int64_t>::value = { INT64_MAX, INT64_MAX };
+
+struct ParallelData {
+	std::vector<std::thread> threads;
+};
+
+template <typename T>
+void quickhullRec(
+	std::span<point<T>> pts, point<T> leftHullPoint, point<T> rightHullPoint,
+	int remParallelDepth, ParallelData* pdata
+) {
+	if (pts.size() <= 1)
 		return;
 	
 	point<T> normal = (rightHullPoint - leftHullPoint).rotated90CCW();
@@ -25,49 +38,80 @@ void quickhullRec(const std::vector<point<T>>& pts, std::vector<point<T>>& outpu
 		}
 	}
 	
-	std::vector<point<T>> ptsL, ptsR;
-	for (size_t i = 0; i < pts.size(); i++) {
-		if (pts[i].cross(pts[maxPointIdx], leftHullPoint) < 0) {
-			ptsL.push_back(pts[i]);
-		} else if (pts[i].cross(rightHullPoint, pts[maxPointIdx]) < 0) {
-			ptsR.push_back(pts[i]);
-		}
+	std::swap(pts[maxPointIdx], pts.back());
+	auto maxPoint = pts.back();
+	
+	auto rightPointsEndIt = std::partition(pts.begin(), pts.end() - 1, [&] (const point<T>& p) -> bool {
+		return p.sideOfLine(rightHullPoint, maxPoint) == side::right;
+	});
+	
+	std::swap(*rightPointsEndIt, pts.back());
+	
+	auto leftPointsEndIt = std::partition(rightPointsEndIt + 1, pts.end(), [&] (const point<T>& p) -> bool {
+		return p.sideOfLine(maxPoint, leftHullPoint) == side::right;
+	});
+	
+	size_t numPointsRight = rightPointsEndIt - pts.begin();
+	size_t numPointsLeft = (leftPointsEndIt - rightPointsEndIt) - 1;
+	
+	std::fill(leftPointsEndIt, pts.end(), PointNotOnHull<T>::value);
+	
+	auto rightSubspan = pts.subspan(0, numPointsRight);
+	if (pdata && remParallelDepth > 0) {
+		pdata->threads.emplace_back([=] {
+			quickhullRec<T>(rightSubspan, maxPoint, rightHullPoint, remParallelDepth - 1, pdata);
+		});
+	} else {
+		quickhullRec<T>(rightSubspan, maxPoint, rightHullPoint, remParallelDepth - 1, pdata);
 	}
 	
-	quickhullRec(ptsL, output, leftHullPoint, pts[maxPointIdx]);
-	output.push_back(pts[maxPointIdx]);
-	quickhullRec(ptsR, output, pts[maxPointIdx], rightHullPoint);
+	quickhullRec<T>(pts.subspan(numPointsRight + 1, numPointsLeft), leftHullPoint, maxPoint, remParallelDepth - 1, pdata);
 }
 
 template <typename T>
-void runQuickhull(std::vector<point<T>>& pts) {
+void runQuickhull(std::vector<point<T>>& pts, bool parallel) {
 	size_t leftmost = std::min_element(pts.begin(), pts.end()) - pts.begin();
-	std::swap(pts[0], pts[leftmost]);
+	point<T> leftmostPt = pts[leftmost];
+	std::swap(pts.front(), pts[leftmost]);
 	
 	size_t rightmost = std::max_element(pts.begin(), pts.end()) - pts.begin();
-	std::swap(pts[1], pts[rightmost]);
+	point<T> rightmostPt = pts[rightmost];
+	std::swap(pts.back(), pts[rightmost]);
 	
-	std::vector<point<T>> ptsAbove, ptsBelow, result;
+	auto belowPointsEndIt = std::partition(pts.begin() + 1, pts.end() - 1, [&] (const point<T>& p) -> bool {
+		return p.sideOfLine(leftmostPt, rightmostPt) == side::right;
+	});
 	
-	for (size_t i = 2; i < pts.size(); i++) {
-		auto cross = pts[i].cross(pts[1], pts[0]);
-		if (cross > 0) {
-			ptsBelow.push_back(pts[i]);
-		} else if (cross < 0) {
-			ptsAbove.push_back(pts[i]);
+	std::swap(pts.back(), *belowPointsEndIt);
+	
+	std::unique_ptr<ParallelData> pdata;
+	int remParallelDepth = 0;
+	
+	if (parallel) {
+		while ((1 << remParallelDepth) <= std::thread::hardware_concurrency())
+			remParallelDepth++;
+	}
+	
+	quickhullRec<T>(std::span<point<T>>(&pts[1], &*belowPointsEndIt), rightmostPt, leftmostPt, remParallelDepth, pdata.get());
+	quickhullRec<T>(std::span<point<T>>(&*belowPointsEndIt + 1, pts.data() + pts.size()), leftmostPt, rightmostPt, remParallelDepth, pdata.get());
+	
+	if (pdata) {
+		for (std::thread& thread : pdata->threads) {
+			thread.join();
 		}
 	}
 	
-	result.push_back(pts[0]);
-	quickhullRec(ptsAbove, result, pts[0], pts[1]);
-	result.push_back(pts[1]);
-	quickhullRec(ptsBelow, result, pts[1], pts[0]);
-	std::reverse(result.begin(), result.end());
-	pts = result;
+	pts.erase(std::remove_if(pts.begin(), pts.end(), [&] (const point<T>& p) { return std::isnan(p.x); }), pts.end());
 }
 
 DEF_HULL_IMPL({
-	.name = "quickhull",
-	.runInt = &runQuickhull<int64_t>,
-	.runDouble = &runQuickhull<double>,
+	.name = "qh_rec",
+	.runInt = std::bind(runQuickhull<int64_t>, std::placeholders::_1, false),
+	.runDouble = std::bind(runQuickhull<double>, std::placeholders::_1, false),
+});
+
+DEF_HULL_IMPL({
+	.name = "qh_recpar",
+	.runInt = std::bind(runQuickhull<int64_t>, std::placeholders::_1, true),
+	.runDouble = std::bind(runQuickhull<double>, std::placeholders::_1, true),
 });
