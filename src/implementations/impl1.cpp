@@ -1,3 +1,4 @@
+#include "impl1.hpp"
 #include "../hull_impl.hpp"
 #include "../point.hpp"
 

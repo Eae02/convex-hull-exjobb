@@ -1,6 +1,7 @@
+#include "chan.hpp"
+#include "impl1.hpp"
 #include "../hull_impl.hpp"
 #include "../point.hpp"
-#include "chan.cpp"
 
 #include <algorithm>
 #include <vector>
