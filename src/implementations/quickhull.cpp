@@ -7,6 +7,7 @@
 #include <cmath>
 #include <thread>
 #include <list>
+#include <mutex>
 
 template <typename T>
 struct PointNotOnHull {
@@ -16,6 +17,7 @@ template <> const point<double> PointNotOnHull<double>::value = { NAN, NAN };
 template <> const point<int64_t> PointNotOnHull<int64_t>::value = { INT64_MAX, INT64_MAX };
 
 struct ParallelData {
+	std::mutex lock;
 	std::list<std::thread> threads;
 };
 
@@ -59,9 +61,11 @@ void quickhullRec(
 	
 	auto rightSubspan = pts.subspan(0, numPointsRight);
 	if (pdata && remParallelDepth > 0) {
+		pdata->lock.lock();
 		pdata->threads.emplace_back([=] {
 			quickhullRec<T>(rightSubspan, maxPoint, rightHullPoint, remParallelDepth - 1, pdata);
 		});
+		pdata->lock.unlock();
 	} else {
 		quickhullRec<T>(rightSubspan, maxPoint, rightHullPoint, remParallelDepth - 1, pdata);
 	}
@@ -98,7 +102,12 @@ void runQuickhull(std::vector<point<T>>& pts, bool parallel) {
 	quickhullRec<T>(std::span<point<T>>(&*belowPointsEndIt + 1, pts.data() + pts.size()), leftmostPt, rightmostPt, remParallelDepth, pdata.get());
 	
 	if (pdata) {
-		for (std::thread& thread : pdata->threads) {
+		while (true) {
+			std::unique_lock<std::mutex> lg(pdata->lock);
+			if (pdata->threads.empty()) break;
+			auto thread = std::move(pdata->threads.back());
+			pdata->threads.pop_back();
+			lg.unlock();
 			thread.join();
 		}
 	}
