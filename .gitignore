@@ -1,7 +1,9 @@
-/*.bin
 /.build
 /.vscode
 /.idea
 .directory
 .DS_store
 /.testcases
+*.bin
+*.out
+*.in
