@@ -6,6 +6,7 @@
 #include <chrono>
 #include <cassert>
 #include <charconv>
+#include <iomanip>
 
 static bool readBinary;
 static bool outputPoints;
@@ -38,6 +39,7 @@ void readRunAndOutput(uint64_t numPoints, const std::function<void(std::vector<p
 	
 	std::cout << "on hull: " << points.size() << "\n";
 	if (outputPoints) {
+		std::cout << std::setprecision(15) << std::fixed;
 		for (const auto& point : points) {
 			std::cout << point.x << " " << point.y << "\n";
 		}
