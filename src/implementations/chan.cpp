@@ -88,7 +88,7 @@ bool Hull2D(std::vector<point<T>>& pts, int m, int H) {
 }
 
 template <typename T>
-void runChen(std::vector<point<T>>& pts) {
+void runChan(std::vector<point<T>>& pts) {
 	if (pts.size() <= 2) return;
     long long t = 1;
     while (true) {
@@ -105,7 +105,7 @@ void runChen(std::vector<point<T>>& pts) {
 }
 
 DEF_HULL_IMPL({
-	.name = "chen",
-	.runInt = &runChen<int64_t>,
-	.runDouble = &runChen<double>,
+	.name = "chan",
+	.runInt = &runChan<int64_t>,
+	.runDouble = &runChan<double>,
 });
