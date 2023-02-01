@@ -24,7 +24,7 @@ struct ParallelData {
 template <typename T>
 void quickhullRec(
 	std::span<point<T>> pts, point<T> leftHullPoint, point<T> rightHullPoint,
-	int remParallelDepth, ParallelData* pdata
+	int remParallelDepth, ParallelData* pdata, bool upperHull
 ) {
 	if (pts.size() <= 1)
 		return;
@@ -43,34 +43,41 @@ void quickhullRec(
 	
 	std::swap(pts[maxPointIdx], pts.back());
 	auto maxPoint = pts.back();
-	
+
+	// Partitioning on x-coordinate reduces number of sideOfLine calls.
 	auto rightPointsEndIt = std::partition(pts.begin(), pts.end() - 1, [&] (const point<T>& p) -> bool {
-		return p.sideOfLine(rightHullPoint, maxPoint) == side::right;
+		return (p.x < maxPoint.x) ^ upperHull;
 	});
 	
+	auto rightPointsValidEndIt = std::partition(pts.begin(), rightPointsEndIt, [&] (const point<T>& p) -> bool {
+		return p.sideOfLine(rightHullPoint, maxPoint) == side::right;
+	});
+
 	std::swap(*rightPointsEndIt, pts.back());
-	
+	std::fill(rightPointsValidEndIt, rightPointsEndIt, PointNotOnHull<T>::value);
+
 	auto leftPointsEndIt = std::partition(rightPointsEndIt + 1, pts.end(), [&] (const point<T>& p) -> bool {
 		return p.sideOfLine(maxPoint, leftHullPoint) == side::right;
 	});
-	
+
 	size_t numPointsRight = rightPointsEndIt - pts.begin();
+	size_t numPointsValidRight = rightPointsValidEndIt - pts.begin();
 	size_t numPointsLeft = (leftPointsEndIt - rightPointsEndIt) - 1;
-	
+    
 	std::fill(leftPointsEndIt, pts.end(), PointNotOnHull<T>::value);
-	
-	auto rightSubspan = pts.subspan(0, numPointsRight);
+
+	auto rightSubspan = pts.subspan(0, numPointsValidRight);
 	if (pdata && remParallelDepth > 0) {
 		pdata->lock.lock();
 		pdata->threads.emplace_back([=] {
-			quickhullRec<T>(rightSubspan, maxPoint, rightHullPoint, remParallelDepth - 1, pdata);
+			quickhullRec<T>(rightSubspan, maxPoint, rightHullPoint, remParallelDepth - 1, pdata, upperHull);
 		});
 		pdata->lock.unlock();
 	} else {
-		quickhullRec<T>(rightSubspan, maxPoint, rightHullPoint, remParallelDepth - 1, pdata);
+		quickhullRec<T>(rightSubspan, maxPoint, rightHullPoint, remParallelDepth - 1, pdata, upperHull);
 	}
 	
-	quickhullRec<T>(pts.subspan(numPointsRight + 1, numPointsLeft), leftHullPoint, maxPoint, remParallelDepth - 1, pdata);
+	quickhullRec<T>(pts.subspan(numPointsRight + 1, numPointsLeft), leftHullPoint, maxPoint, remParallelDepth - 1, pdata, upperHull);
 }
 
 template <typename T>
@@ -98,8 +105,8 @@ void runQuickhull(std::vector<point<T>>& pts, bool parallel) {
 			remParallelDepth++;
 	}
 	
-	quickhullRec<T>(std::span<point<T>>(&pts[1], &*belowPointsEndIt), rightmostPt, leftmostPt, remParallelDepth, pdata.get());
-	quickhullRec<T>(std::span<point<T>>(&*belowPointsEndIt + 1, pts.data() + pts.size()), leftmostPt, rightmostPt, remParallelDepth, pdata.get());
+	quickhullRec<T>(std::span<point<T>>(&pts[1], &*belowPointsEndIt), rightmostPt, leftmostPt, remParallelDepth, pdata.get(), false);
+	quickhullRec<T>(std::span<point<T>>(&*belowPointsEndIt + 1, pts.data() + pts.size()), leftmostPt, rightmostPt, remParallelDepth, pdata.get(), true);
 	
 	if (pdata) {
 		while (true) {
