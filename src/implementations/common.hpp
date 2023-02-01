@@ -1,12 +1,16 @@
 #pragma once
 
 #include <vector>
+#include <climits>
 #include "../point.hpp"
 
+
+// Merge k convex hulls given by Pdiv, aborting if resulting hull has more than H points.
+// Time complexity O(n+k*h) where n is the total number of input points, and h is the number of output points.
 template <typename T>
 bool Hull2DMerge(const std::vector<std::vector<point<T>>>& Pdiv, int H, std::vector<point<T>>& result) {
     int p = Pdiv.size();
-    std::vector<int> indices(p);
+    std::vector<int> indices(p,0);
     for (int pi = 0; pi < p; pi++) {
         for (int i = 0; i < Pdiv[pi].size(); i++) {
             if (Pdiv[pi][i] < Pdiv[pi][indices[pi]]) {
@@ -56,4 +60,16 @@ bool Hull2DMerge(const std::vector<std::vector<point<T>>>& Pdiv, int H, std::vec
         }
     }
     return false;
+}
+
+// Merge k convex hulls given by Pdiv
+// Time complexity O(n+k*h) where n is the total number of input points, and h is the number of output points.
+template <typename T>
+std::vector<point<T>> Hull2DMerge(const std::vector<std::vector<point<T>>>& Pdiv) {
+    if (Pdiv.size()==1) {
+        return Pdiv[0];
+    }
+    std::vector<point<T>> result;
+    Hull2DMerge(Pdiv, INT_MAX, result);
+    return result;
 }

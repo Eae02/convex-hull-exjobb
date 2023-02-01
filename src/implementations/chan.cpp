@@ -1,4 +1,4 @@
-#include "chan.hpp"
+#include "common.hpp"
 #include "impl1.hpp"
 #include "../hull_impl.hpp"
 #include "../point.hpp"
