@@ -32,12 +32,9 @@ target_compile_options(ch PRIVATE
 	$<$<CONFIG:Debug>:-fsanitize=address,undefined>
 )
 
-target_link_options(ch PRIVATE
-	$<$<CONFIG:Debug>:-fsanitize=address,undefined>
-)
-
 find_package(Boost REQUIRED)
-target_link_libraries(ch PRIVATE Boost::boost)
+find_package(Threads REQUIRED)
+target_link_libraries(ch PRIVATE Boost::boost Threads::Threads)
 
 if (${HAS_CGAL})
 	find_package(CGAL REQUIRED COMPONENTS Core)
@@ -45,17 +42,24 @@ if (${HAS_CGAL})
 	target_compile_definitions(ch PRIVATE HAS_CGAL)
 endif()
 
-find_package(TBB)
-if (${TBB_FOUND})
-	target_link_libraries(ch PRIVATE TBB::tbb)
+if (TBB_PATH)
+	target_link_libraries(ch PRIVATE ${TBB_PATH}/gnu_7.5_cxx11_64_relwithdebinfo/libtbb.so)
+	target_include_directories(ch PRIVATE ${TBB_PATH}/include)
 	target_compile_definitions(ch PRIVATE HAS_TBB)
 else()
-	message(WARNING "tbb not found, parallel quickhull will not be compiled")
+	find_package(TBB)
+	if (${TBB_FOUND})
+		target_link_libraries(ch PRIVATE TBB::tbb)
+		target_compile_definitions(ch PRIVATE HAS_TBB)
+	else()
+		message(WARNING "tbb not found, parallel quickhull will not be compiled")
+	endif()
 endif()
 
 set_target_properties(ch PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	OUTPUT_NAME $<IF:$<CONFIG:Debug>,chd.bin,ch.bin>
 	LINKER_LANGUAGE CXX
+	LINK_OPTIONS $<$<CONFIG:Debug>:-fsanitize=address,undefined>
 	CXX_STANDARD 20
 )
