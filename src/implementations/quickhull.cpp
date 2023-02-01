@@ -94,7 +94,7 @@ void runQuickhull(std::vector<point<T>>& pts, bool parallel) {
 	
 	if (parallel) {
 		pdata = std::make_unique<ParallelData>();
-		while ((1 << remParallelDepth) <= std::thread::hardware_concurrency())
+		while ((1 << remParallelDepth) <= static_cast<int>(std::thread::hardware_concurrency()))
 			remParallelDepth++;
 	}
 	

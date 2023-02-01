@@ -20,7 +20,7 @@ void readRunAndOutput(uint64_t numPoints, const std::function<void(std::vector<p
 	if (readBinary) {
 		std::cin.read(reinterpret_cast<char*>(points.data()), points.size() * sizeof(point<T>));
 	} else {
-		for (int i = 0; i < numPoints; i++) {
+		for (uint64_t i = 0; i < numPoints; i++) {
 			std::string line;
 			std::getline(std::cin, line);
 			size_t spacePos = line.find(' ');

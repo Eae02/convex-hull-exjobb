@@ -20,7 +20,7 @@ void runChanId3(std::vector<point<T>>& pts) {
     }
     int p = (pts.size() + m - 1)/m; // Number of partitions, ceil(n/m)
     std::vector<std::vector<point<T>>> Pdiv(p); // Division of the points into p sets
-    for (int i = 0; i < pts.size(); i++) {
+    for (size_t i = 0; i < pts.size(); i++) {
         Pdiv[i%p].push_back(pts[i]);
     }
     for (int pi = 0; pi < p; pi++) {

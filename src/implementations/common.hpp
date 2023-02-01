@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <climits>
+#include <cstddef>
 #include "../point.hpp"
 
 
@@ -12,7 +13,7 @@ bool Hull2DMerge(const std::vector<std::vector<point<T>>>& Pdiv, int H, std::vec
     int p = Pdiv.size();
     std::vector<int> indices(p,0);
     for (int pi = 0; pi < p; pi++) {
-        for (int i = 0; i < Pdiv[pi].size(); i++) {
+        for (size_t i = 0; i < Pdiv[pi].size(); i++) {
             if (Pdiv[pi][i] < Pdiv[pi][indices[pi]]) {
                 indices[pi] = i;
             }

@@ -107,11 +107,11 @@ void ch(std::vector<point<T>>& S) {
 	// return;
 
 	// Compute tangents to merge A and B
-	int lAi = 0; // Lowest point on A
-	int lBi = 0; // Lowest point on B
-	int uAi = 0; // highest point on A
-	int uBi = 0; // Highest point on B
-	for (int i = 0; i < A.size(); i++) {
+	size_t lAi = 0; // Lowest point on A
+	size_t lBi = 0; // Lowest point on B
+	size_t uAi = 0; // highest point on A
+	size_t uBi = 0; // Highest point on B
+	for (size_t i = 0; i < A.size(); i++) {
 		if (A[i].y < A[lAi].y) {
 			lAi = i;
 		}
@@ -119,7 +119,7 @@ void ch(std::vector<point<T>>& S) {
 			uAi = i;
 		}
 	}
-	for (int i = 0; i < B.size(); i++) {
+	for (size_t i = 0; i < B.size(); i++) {
 		if (B[i].y < B[lBi].y) {
 			lBi = i;
 		}
@@ -130,19 +130,19 @@ void ch(std::vector<point<T>>& S) {
 
 	auto lower_tangent = find_tangent(A,B,lAi,lBi,true);
 	auto upper_tangent = find_tangent(A,B,uAi,uBi,false);
-	int ltA,ltB,utA,utB;
+	size_t ltA,ltB,utA,utB;
 	ltA = lower_tangent.first;
 	ltB = lower_tangent.second;
 	utA = upper_tangent.first;
 	utB = upper_tangent.second;
 	S.clear();
 	//Build the hull
-	for (int i = utA; i != ltA; i=(i+1)%A.size()) {
+	for (size_t i = utA; i != ltA; i=(i+1)%A.size()) {
 		S.push_back(A[i]);
 	}
 	S.push_back(A[ltA]);
 
-	for (int i = ltB; i != utB; i=(i+1)%B.size()) {
+	for (size_t i = ltB; i != utB; i=(i+1)%B.size()) {
 		S.push_back(B[i]);
 	}
 	S.push_back(B[utB]);
