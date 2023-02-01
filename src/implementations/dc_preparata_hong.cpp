@@ -1,5 +1,6 @@
 #include "../hull_impl.hpp"
 #include "../point.hpp"
+#include "common.hpp"
 
 #include <algorithm>
 #include <vector>
@@ -99,6 +100,11 @@ void ch(std::vector<point<T>>& S) {
 	std::copy(S.begin()+n/2, S.end(), std::back_inserter(B));
 	ch(A);
 	ch(B);
+	// Uncomment to swap out tangent finding for just generally merging the hulls, is around 3x slower 
+	// std::vector<std::vector<point<T>>> Pdiv;
+	// Pdiv.push_back(std::move(A)); Pdiv.push_back(std::move(B));
+	// S = Hull2DMerge(Pdiv);
+	// return;
 
 	// Compute tangents to merge A and B
 	int lAi = 0; // Lowest point on A

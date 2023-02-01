@@ -1,4 +1,4 @@
-#include "chan.hpp"
+#include "common.hpp"
 #include "impl1.hpp"
 #include "../hull_impl.hpp"
 #include "../point.hpp"
@@ -6,17 +6,6 @@
 #include <algorithm>
 #include <vector>
 #include <math.h>
-#include <climits>
-
-template <typename T>
-std::vector<point<T>> Hull2DMerge(const std::vector<std::vector<point<T>>>& Pdiv) {
-    if (Pdiv.size()==1) {
-        return Pdiv[0];
-    }
-    std::vector<point<T>> result;
-    Hull2DMerge(Pdiv, INT_MAX, result);
-    return result;
-}
 
 
 // Variant of chans algorithm using Refinement idea 3 from the paper.
