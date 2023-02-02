@@ -2,6 +2,8 @@
 
 if [[ $1 == "debug" ]]; then
 	BUILD_TYPE="Debug"
+elif [[ $1 == "debugrel" ]]; then
+	BUILD_TYPE="RelWithDebInfo"
 else
 	BUILD_TYPE="Release"
 fi

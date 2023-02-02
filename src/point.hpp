@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <ostream>
 #include <tuple>
 
 enum class side {
@@ -45,3 +46,8 @@ using pointd = point<double>;
 
 static_assert(sizeof(pointi) == 2 * sizeof(int64_t));
 static_assert(sizeof(pointd) == 2 * sizeof(double));
+
+template <typename T>
+std::ostream& operator<<(std::ostream& stream, const point<T>& p) {
+	return stream << "(" << p.x << " " << p.y << ")";
+}

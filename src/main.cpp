@@ -7,6 +7,7 @@
 #include <cassert>
 #include <charconv>
 #include <iomanip>
+#include <cmath>
 
 static bool readBinary;
 static bool outputPoints;
@@ -35,12 +36,14 @@ void readRunAndOutput(uint64_t numPoints, const std::function<void(std::vector<p
 	run(points);
 	auto endTime = std::chrono::high_resolution_clock::now();
 	
-	std::rotate(points.begin(), std::min_element(points.begin(), points.end()), points.end());
-	
 	std::cout << "on hull: " << points.size() << "\n";
 	if (outputPoints) {
 		std::cout << std::setprecision(15) << std::fixed;
 		for (const auto& point : points) {
+			if (std::isnan(point.x) || std::isnan(point.y) || std::isinf(point.x) || std::isinf(point.y)) {
+				std::cerr << "output contains inf/nan!\n";
+			}
+			
 			std::cout << point.x << " " << point.y << "\n";
 		}
 	}
