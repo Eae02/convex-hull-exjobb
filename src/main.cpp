@@ -38,6 +38,7 @@ void readRunAndOutput(uint64_t numPoints, const std::function<void(std::vector<p
 	
 	std::cout << "on hull: " << points.size() << "\n";
 	if (outputPoints) {
+		std::rotate(points.begin(), std::min_element(points.begin(), points.end()), points.end());
 		std::cout << std::setprecision(15) << std::fixed;
 		for (const auto& point : points) {
 			if (std::isnan(point.x) || std::isnan(point.y) || std::isinf(point.x) || std::isinf(point.y)) {
