@@ -12,9 +12,10 @@ endif()
 file(GLOB_RECURSE SOURCE_FILES src/*.cpp)
 
 if (NO_AVX)
-	list(FILTER SOURCE_FILES EXCLUDE REGEX ".*_avx\.cpp")
+	list(FILTER SOURCE_FILES EXCLUDE REGEX ".*_avx.*\.cpp")
 else()
-	set_source_files_properties(src/implementations/quickhull_avx.cpp PROPERTIES COMPILE_FLAGS "-mavx512f -mavx512vl")
+	set_source_files_properties(src/implementations/quickhull_avx512.cpp PROPERTIES COMPILE_FLAGS "-mavx512f -mavx512vl")
+	set_source_files_properties(src/implementations/quickhull_avx2.cpp PROPERTIES COMPILE_FLAGS "-mavx -mavx2")
 endif()
 
 add_executable(ch ${SOURCE_FILES})

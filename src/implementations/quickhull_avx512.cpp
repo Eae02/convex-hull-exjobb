@@ -287,7 +287,7 @@ void runQuickhullAvx(std::vector<pointd>& pts) {
 }
 
 DEF_HULL_IMPL({
-	.name = "qh_avx",
+	.name = "qh_avx512",
 	.runInt = nullptr,
 	.runDouble = runQuickhullAvx,
 });
