@@ -1,5 +1,6 @@
 #include "../hull_impl.hpp"
 #include "../point.hpp"
+#include "simd_utils.hpp"
 
 #include <algorithm>
 #include <vector>
@@ -11,8 +12,6 @@
 #include <list>
 #include <mutex>
 #include <cassert>
-
-#include <immintrin.h>
 
 namespace avx2 {
 
@@ -81,14 +80,6 @@ struct points {
 		std::cerr << "\n";
 	}
 };
-
-__m128i cvtepi64_epi32_avx(__m256d v) {
-	__m256 vf = _mm256_castpd_ps(v);
-	__m128 hi = _mm256_extractf128_ps(vf, 1);
-	__m128 lo = _mm256_castps256_ps128(vf);
-	__m128 packed = _mm_shuffle_ps(lo, hi, _MM_SHUFFLE(2, 0, 2, 0));
-	return _mm_castps_si128(packed);
-}
 
 __m256d bitmapToVecmask(int m) {
 	static const __m256i vshift_count = _mm256_set_epi64x(60, 61, 62, 63);
@@ -261,20 +252,7 @@ void runQuickhullAvx(std::vector<pointd>& pts) {
 	__m256d* ptsx = reinterpret_cast<__m256d*>(buffer);
 	__m256d* ptsy = reinterpret_cast<__m256d*>(buffer + bufferSize);
 	
-	for (size_t i = 0; i < pts.size() / 4; i++) {
-		for (size_t j = 0; j < 4; j++) {
-			size_t idx = i * 4 + j;
-			ptsx[i][j] = pts[idx].x;
-			ptsy[i][j] = pts[idx].y;
-		}
-	}
-	size_t lastVecIdx = pts.size() / 4;
-	ptsx[lastVecIdx] = _mm256_set1_pd(NAN);
-	ptsy[lastVecIdx] = _mm256_set1_pd(NAN);
-	for (size_t i = lastVecIdx * 4; i < pts.size(); i++) {
-		ptsx[lastVecIdx][i % 4] = pts[i].x;
-		ptsy[lastVecIdx][i % 4] = pts[i].y;
-	}
+	initPoints256(pts, ptsx, ptsy, NAN);
 	
 	auto [leftmostIdx, rightmostIdx] = findMinMax(ptsx, ptsy, (pts.size() + 3) / 4);
 	

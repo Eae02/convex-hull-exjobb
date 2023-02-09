@@ -1,5 +1,6 @@
 #include "../hull_impl.hpp"
 #include "../point.hpp"
+#include "simd_utils.hpp"
 
 #include <algorithm>
 #include <vector>
@@ -11,8 +12,6 @@
 #include <list>
 #include <mutex>
 #include <cassert>
-
-#include <immintrin.h>
 
 struct points {
 	__m512d* x;
@@ -234,20 +233,7 @@ void runQuickhullAvx(std::vector<pointd>& pts) {
 	__m512d* ptstmpx = reinterpret_cast<__m512d*>(buffer + bufferSize * 2);
 	__m512d* ptstmpy = reinterpret_cast<__m512d*>(buffer + bufferSize * 3);
 	
-	for (size_t i = 0; i < pts.size() / 8; i++) {
-		for (size_t j = 0; j < 8; j++) {
-			size_t idx = i * 8 + j;
-			ptsx[i][j] = pts[idx].x;
-			ptsy[i][j] = pts[idx].y;
-		}
-	}
-	size_t lastVecIdx = pts.size() / 8;
-	ptsx[lastVecIdx] = _mm512_set1_pd(-INFINITY);
-	ptsy[lastVecIdx] = _mm512_set1_pd(-INFINITY);
-	for (size_t i = lastVecIdx * 8; i < pts.size(); i++) {
-		ptsx[lastVecIdx][i % 8] = pts[i].x;
-		ptsy[lastVecIdx][i % 8] = pts[i].y;
-	}
+	initPoints512(pts, ptsx, ptsy, -INFINITY);
 	
 	points ptsSpan = { ptsx, ptsy, pts.size() };
 	points ptsTmpSpan = { ptstmpx, ptstmpy, pts.size() };
