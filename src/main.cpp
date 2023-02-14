@@ -1,4 +1,5 @@
 #include "hull_impl.hpp"
+#include "slice_parallel.hpp"
 
 #include <iostream>
 #include <algorithm>
@@ -10,12 +11,15 @@
 #include <cmath>
 #include <memory>
 #include <span>
+#include <optional>
 
 static bool readBinary;
 static bool outputPoints;
 
+static std::optional<SolveSliceParallelArgs> solveSliceParallelArgs;
+
 template <typename T>
-void readRunAndOutput(uint64_t numPoints, const std::function<void(std::vector<point<T>>&)>& run) {
+void readRunAndOutput(uint64_t numPoints, std::function<void(std::vector<point<T>>&)> run) {
 	auto beforeTime = std::chrono::high_resolution_clock::now();
 	
 	std::vector<pointd> pointsd(numPoints);
@@ -47,6 +51,12 @@ void readRunAndOutput(uint64_t numPoints, const std::function<void(std::vector<p
 			}
 			pointsTVec[i] = point<T>(pointsd[i]);
 		}
+	}
+	
+	if (solveSliceParallelArgs) {
+		run = [innerSolve=run] (std::vector<point<T>>& p) {
+			solveSliceParallel<T>(p, innerSolve, *solveSliceParallelArgs);
+		};
 	}
 	
 	auto startTime = std::chrono::high_resolution_clock::now();
@@ -101,6 +111,14 @@ int main(int argv, char** argc) {
 			useIntVersion = true;
 		} else if (arg == "-q") {
 			outputPoints = false;
+		} else if (arg.starts_with("-sp")) {
+			std::string_view numThreads = arg.substr(3);
+			solveSliceParallelArgs = SolveSliceParallelArgs();
+			if (!numThreads.empty()) {
+				std::from_chars(numThreads.data(), numThreads.data() + numThreads.size(), solveSliceParallelArgs->numThreads);
+			}
+		} else if (arg.starts_with("-spm=")) {
+			solveSliceParallelArgs->splitMethod = splitMethodFromString(arg.substr(5));
 		} else if (!arg.starts_with("-")) {
 			implName = arg;
 		}

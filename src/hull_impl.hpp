@@ -6,10 +6,13 @@
 
 #include "point.hpp"
 
+template <typename T>
+using HullSolveFunction = std::function<void(std::vector<point<T>>&)>;
+
 struct HullImpl {
 	std::string_view name;
-	std::function<void(std::vector<pointi>&)> runInt;
-	std::function<void(std::vector<pointd>&)> runDouble;
+	HullSolveFunction<int64_t> runInt;
+	HullSolveFunction<double> runDouble;
 };
 
 extern std::vector<HullImpl>* hullImplementations;
