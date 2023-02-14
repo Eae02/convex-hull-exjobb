@@ -8,6 +8,9 @@
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/ch_jarvis.h>
 #include <CGAL/ch_graham_andrew.h>
+#include <CGAL/ch_akl_toussaint.h>
+#include <CGAL/ch_eddy.h>
+#include <CGAL/ch_bykat.h>
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
 typedef K::Point_2 Point_2;
@@ -30,6 +33,24 @@ std::function<void(std::vector<pointd>&)> createCGALRunFunction(CGAL_CH_Func<> c
 			pts.emplace_back(p.x(), p.y());
 	};
 }
+
+DEF_HULL_IMPL({
+	.name = "cgal_akl_toussaint",
+	.runInt = nullptr,
+	.runDouble = createCGALRunFunction(&CGAL::ch_akl_toussaint)
+});
+
+DEF_HULL_IMPL({
+	.name = "cgal_bykat",
+	.runInt = nullptr,
+	.runDouble = createCGALRunFunction(&CGAL::ch_bykat)
+});
+
+DEF_HULL_IMPL({
+	.name = "cgal_eddy",
+	.runInt = nullptr,
+	.runDouble = createCGALRunFunction(&CGAL::ch_eddy)
+});
 
 DEF_HULL_IMPL({
 	.name = "cgal_jarvis",
