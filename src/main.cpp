@@ -8,6 +8,8 @@
 #include <charconv>
 #include <iomanip>
 #include <cmath>
+#include <memory>
+#include <span>
 
 static bool readBinary;
 static bool outputPoints;
@@ -16,10 +18,9 @@ template <typename T>
 void readRunAndOutput(uint64_t numPoints, const std::function<void(std::vector<point<T>>&)>& run) {
 	auto beforeTime = std::chrono::high_resolution_clock::now();
 	
-	std::vector<point<T>> points(numPoints);
-	
+	std::vector<pointd> pointsd(numPoints);
 	if (readBinary) {
-		std::cin.read(reinterpret_cast<char*>(points.data()), points.size() * sizeof(point<T>));
+		std::cin.read(reinterpret_cast<char*>(pointsd.data()), pointsd.size() * sizeof(point<T>));
 	} else {
 		for (uint64_t i = 0; i < numPoints; i++) {
 			std::string line;
@@ -27,24 +28,39 @@ void readRunAndOutput(uint64_t numPoints, const std::function<void(std::vector<p
 			size_t spacePos = line.find(' ');
 			assert(spacePos != std::string::npos);
 			
-			std::from_chars(&line[0], &line[spacePos], points[i].x);
-			std::from_chars(&line[spacePos + 1], &line[line.size()], points[i].y);
+			std::from_chars(&line[0], &line[spacePos], pointsd[i].x);
+			std::from_chars(&line[spacePos + 1], &line[line.size()], pointsd[i].y);
+		}
+	}
+	
+	std::vector<point<T>>* points;
+	std::vector<point<T>> pointsTVec;
+	if constexpr (std::is_same_v<T, double>) {
+		points = &pointsd;
+	} else {
+		points = &pointsTVec;
+		pointsTVec.resize(pointsd.size());
+		for (uint64_t i = 0; i < numPoints; i++) {
+			if constexpr (std::is_integral_v<T>) {
+				pointsd[i].x = std::round(pointsd[i].x);
+				pointsd[i].y = std::round(pointsd[i].y);
+			}
+			pointsTVec[i] = point<T>(pointsd[i]);
 		}
 	}
 	
 	auto startTime = std::chrono::high_resolution_clock::now();
-	run(points);
+	run(*points);
 	auto endTime = std::chrono::high_resolution_clock::now();
 	
-	std::cout << "on hull: " << points.size() << "\n";
+	std::cout << "on hull: " << points->size() << "\n";
 	if (outputPoints) {
-		std::rotate(points.begin(), std::min_element(points.begin(), points.end()), points.end());
+		std::rotate(points->begin(), std::min_element(points->begin(), points->end()), points->end());
 		std::cout << std::setprecision(15) << std::fixed;
-		for (const auto& point : points) {
+		for (const auto& point : *points) {
 			if (std::isnan(point.x) || std::isnan(point.y) || std::isinf(point.x) || std::isinf(point.y)) {
 				std::cerr << "output contains inf/nan!\n";
 			}
-			
 			std::cout << point.x << " " << point.y << "\n";
 		}
 	}
