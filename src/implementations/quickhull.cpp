@@ -9,13 +9,6 @@
 #include <list>
 #include <mutex>
 
-template <typename T>
-struct PointNotOnHull {
-	static const point<T> value;
-};
-template <> const point<double> PointNotOnHull<double>::value = { NAN, NAN };
-template <> const point<int64_t> PointNotOnHull<int64_t>::value = { INT64_MAX, INT64_MAX };
-
 struct ParallelData {
 	std::mutex lock;
 	std::list<std::thread> threads;
@@ -44,7 +37,7 @@ void quickhullRec(
 	}
 	
 	if (pts[maxPointIdx].sideOfLine(leftHullPoint, rightHullPoint) != side::left) {
-		std::fill(pts.begin(), pts.end(), PointNotOnHull<T>::value);
+		std::fill(pts.begin(), pts.end(), point<T>::notOnHull);
 		return;
 	}
 	
@@ -63,7 +56,7 @@ void quickhullRec(
 	});
 
 	std::swap(*rightPointsEndIt, pts.back());
-	std::fill(rightPointsValidEndIt, rightPointsEndIt, PointNotOnHull<T>::value);
+	std::fill(rightPointsValidEndIt, rightPointsEndIt, point<T>::notOnHull);
 
 	auto leftPointsEndIt = std::partition(rightPointsEndIt + 1, pts.end(), [&] (const point<T>& p) -> bool {
 		return p.sideOfLine(maxPoint, leftHullPoint) == side::right;
@@ -73,7 +66,7 @@ void quickhullRec(
 	size_t numPointsValidRight = rightPointsValidEndIt - pts.begin();
 	size_t numPointsLeft = (leftPointsEndIt - rightPointsEndIt) - 1;
     
-	std::fill(leftPointsEndIt, pts.end(), PointNotOnHull<T>::value);
+	std::fill(leftPointsEndIt, pts.end(), point<T>::notOnHull);
 
 	auto rightSubspan = pts.subspan(0, numPointsValidRight);
 	if (pdata && remParallelDepth > 0) {
@@ -128,13 +121,7 @@ void runQuickhull(std::vector<point<T>>& pts, bool parallel) {
 		}
 	}
 	
-	pts.erase(std::remove_if(pts.begin(), pts.end(), [&] (const point<T>& p) {
-		if constexpr (std::is_floating_point_v<T>) {
-			return std::isnan(p.x);
-		} else {
-			return p == PointNotOnHull<T>::value;
-		}
-	}), pts.end());
+	pts.erase(std::remove_if(pts.begin(), pts.end(), [&] (const point<T>& p) { return p.isNotOnHull(); }), pts.end());
 }
 
 DEF_HULL_IMPL({
