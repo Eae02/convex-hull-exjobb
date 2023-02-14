@@ -2,7 +2,7 @@
 
 # Make sure to run createtests.sh first
 
-implementation=$1;shift
+implementation=$@
 
 
 
