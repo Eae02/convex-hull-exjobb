@@ -4,11 +4,19 @@
 
 #include <algorithm>
 #include <vector>
+#include <execution>
 
 template <typename T>
-void runImpl1(std::vector<point<T>>& pts) {
-	if (pts.size() <= 1) return;
-	std::sort(pts.begin(), pts.end());
+void runImpl1(std::vector<point<T>>& pts, bool parallelSort) {
+	if (pts.size() <= 1)
+		return;
+	
+	if (parallelSort) {
+		std::sort(std::execution::par, pts.begin(), pts.end());
+	} else {
+		std::sort(pts.begin(), pts.end());
+	}
+	
 	std::vector<point<T>> h;
 	auto f = [&] (size_t s) {
 		for (auto p : pts) {
@@ -27,6 +35,12 @@ void runImpl1(std::vector<point<T>>& pts) {
 
 DEF_HULL_IMPL({
 	.name = "impl1",
-	.runInt = &runImpl1<int64_t>,
-	.runDouble = &runImpl1<double>,
+	.runInt = std::bind(&runImpl1<int64_t>, std::placeholders::_1, false),
+	.runDouble = std::bind(&runImpl1<double>, std::placeholders::_1, false),
+});
+
+DEF_HULL_IMPL({
+	.name = "impl1_par",
+	.runInt = std::bind(&runImpl1<int64_t>, std::placeholders::_1, true),
+	.runDouble = std::bind(&runImpl1<double>, std::placeholders::_1, true),
 });
