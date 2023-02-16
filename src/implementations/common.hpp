@@ -29,7 +29,7 @@ bool Hull2DMerge(const std::vector<std::vector<point<T>>>& Pdiv, int H, std::vec
     }
     result.push_back(leftMostPoint);
 
-    for (int i = 0; i < H; i++) {
+    for (int i = 0; i != H; i++) {
         // For each hull find tangent from result.back()
         point<T> prevHullPoint = result.back();
         for (int pi = 0; pi < p; pi++) {
@@ -71,6 +71,6 @@ std::vector<point<T>> Hull2DMerge(const std::vector<std::vector<point<T>>>& Pdiv
         return Pdiv[0];
     }
     std::vector<point<T>> result;
-    Hull2DMerge(Pdiv, INT_MAX, result);
+    Hull2DMerge(Pdiv, -1, result);
     return result;
 }

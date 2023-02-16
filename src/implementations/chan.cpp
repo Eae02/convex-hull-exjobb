@@ -24,7 +24,7 @@ bool Hull2D(std::vector<point<T>>& pts, int m, int H) {
     }
 
     // Refinement idea 1 from chans paper, remove known interior points from further consideration.
-    pts.clear();
+    pts.resize(0);
     for (int pi = 0; pi < p; pi++) {
         std::copy(Pdiv[pi].begin(), Pdiv[pi].end(), std::back_inserter(pts));
     }
