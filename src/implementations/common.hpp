@@ -36,8 +36,13 @@ bool Hull2DMerge(const std::vector<std::vector<point<T>>>& Pdiv, int H, std::vec
             while(true) {
                 point<T> cur = Pdiv[pi][indices[pi]];
                 point<T> next = Pdiv[pi][(indices[pi] + 1) % Pdiv[pi].size()];
+                if (cur == prevHullPoint && (cur - prevHullPoint).lenmh() < (next - prevHullPoint).lenmh()) {
+                    indices[pi]++;
+                    indices[pi] %= Pdiv[pi].size();
+                    continue;
+                }
                 side orientation = cur.sideOfLine(next, prevHullPoint);
-                if (orientation == side::right || (orientation == side::on && (cur - prevHullPoint).len2() < (next - prevHullPoint).len2())) {
+                if (orientation == side::right || (orientation == side::on && (cur - prevHullPoint).lenmh() < (next - prevHullPoint).lenmh())) {
                     indices[pi]++;
                     indices[pi] %= Pdiv[pi].size();
                 } else {
@@ -49,8 +54,12 @@ bool Hull2DMerge(const std::vector<std::vector<point<T>>>& Pdiv, int H, std::vec
         point<T> nextHullPoint = Pdiv[0][indices[0]];
         for (int pi = 1; pi < p; pi++) {
             point<T> candidate = Pdiv[pi][indices[pi]];
+            if (nextHullPoint == prevHullPoint && (nextHullPoint - prevHullPoint).lenmh() < (candidate - prevHullPoint).lenmh()) {
+                nextHullPoint = candidate;
+                continue;
+            }
             side orientation = nextHullPoint.sideOfLine(candidate, prevHullPoint);
-            if (orientation == side::right || (orientation == side::on && (nextHullPoint - prevHullPoint).len2() < (candidate - prevHullPoint).len2())) {
+            if (orientation == side::right || (orientation == side::on && (nextHullPoint - prevHullPoint).lenmh() < (candidate - prevHullPoint).lenmh())) {
                 nextHullPoint = candidate;
             }
         }

@@ -63,6 +63,11 @@ int Hull2DMerge(std::vector<std::span<point<T>>>& spans, int H) {
             while(true) {
                 point<T> cur = spans[pi][indices[pi]];
                 point<T> next = spans[pi][(indices[pi] + 1) % spans[pi].size()];
+                if (cur == prevHullPoint && (cur - prevHullPoint).lenmh() < (next - prevHullPoint).lenmh()) {
+                    indices[pi]++;
+                    indices[pi] %= spans[pi].size();
+                    continue;
+                }
                 side orientation = cur.sideOfLine(next, prevHullPoint);
                 if (orientation == side::right || (orientation == side::on && (cur - prevHullPoint).lenmh() < (next - prevHullPoint).lenmh())) {
                     indices[pi]++;
@@ -76,6 +81,10 @@ int Hull2DMerge(std::vector<std::span<point<T>>>& spans, int H) {
         point<T> nextHullPoint = spans[0][indices[0]];
         for (size_t pi = 1; pi < p; pi++) {
             point<T> candidate = spans[pi][indices[pi]];
+            if (nextHullPoint == prevHullPoint && (nextHullPoint - prevHullPoint).lenmh() < (candidate - prevHullPoint).lenmh()) {
+                nextHullPoint = candidate;
+                continue;
+            }
             side orientation = nextHullPoint.sideOfLine(candidate, prevHullPoint);
             if (orientation == side::right || (orientation == side::on && (nextHullPoint - prevHullPoint).lenmh() < (candidate - prevHullPoint).lenmh())) {
                 nextHullPoint = candidate;
