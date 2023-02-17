@@ -42,54 +42,56 @@ size_t bruteForce(std::span<point<T>>& pts) {
 
 // Merge k convex hulls given by spans, aborting if resulting hull has more than H points. Returns -1 if it fails, otherwise the size. If H is negative it will never fail.
 // Time complexity O(n+k*h) where n is the total number of input points, and h is the number of output points (or H on failure).
-// On success it places the resulting hull in spans[0][0:size]. Hulls are assumed to be given in CCW order with first point being the leftmost point (lowest in case of ties).
+// Appends generated hull to result.
+// Hulls are assumed to be given in CCW order with first point being the leftmost point (lowest in case of ties).
 template <typename T>
 int Hull2DMerge(std::vector<std::span<point<T>>>& spans, int H, std::vector<point<T>>& result) {
     size_t p = spans.size();
-    std::vector<int> indices(p,0);
+    std::vector<size_t> indices(p,0);
     int size = 0;
     // Put leftmost point into convex hull
-    point<T> leftMostPoint = spans[0][indices[0]];
+    point<T> leftMostPoint = spans[0][0];
+    size_t lastHullUsed = 0;
     for (size_t pi = 1; pi < p; pi++) {
-        if (spans[pi][indices[pi]] < leftMostPoint) {
-            leftMostPoint = spans[pi][indices[pi]];
+        if (spans[pi][0] < leftMostPoint) {
+            leftMostPoint = spans[pi][0];
+            lastHullUsed = pi;
         }
     }
     size_t start_ind = result.size();
     result.push_back(leftMostPoint);
     size++;
+    indices[lastHullUsed]++;
     for (int i = 0; i != H; i++) {
         // For each hull find tangent from result.back()
         point<T> prevHullPoint = result.back();
         for (size_t pi = 0; pi < p; pi++) {
-            while(true) {
+            while(indices[pi] < spans[pi].size()) { // We might need to loop back to index 0 on a hull, but never beyond that
                 point<T> cur = spans[pi][indices[pi]];
                 point<T> next = spans[pi][(indices[pi] + 1) % spans[pi].size()];
-                if (cur == prevHullPoint && (cur - prevHullPoint).lenmh() < (next - prevHullPoint).lenmh()) {
-                    indices[pi]++;
-                    indices[pi] %= spans[pi].size();
-                    continue;
-                }
                 side orientation = cur.sideOfLine(next, prevHullPoint);
                 if (orientation == side::right || (orientation == side::on && (cur - prevHullPoint).lenmh() < (next - prevHullPoint).lenmh())) {
                     indices[pi]++;
-                    indices[pi] %= spans[pi].size();
                 } else {
                     break;
                 }
             }
         }
         // Pick next hull point from best of all tangents
-        point<T> nextHullPoint = spans[0][indices[0]];
-        for (size_t pi = 1; pi < p; pi++) {
-            point<T> candidate = spans[pi][indices[pi]];
-            if (nextHullPoint == prevHullPoint && (nextHullPoint - prevHullPoint).lenmh() < (candidate - prevHullPoint).lenmh()) {
-                nextHullPoint = candidate;
+        point<T> nextHullPoint;
+        lastHullUsed = p;
+        for (size_t pi = 0; pi < p; pi++) {
+            if(indices[pi] > spans[pi].size()) continue;
+            if (lastHullUsed == p) {
+                nextHullPoint = spans[pi][indices[pi] % spans[pi].size()];
+                lastHullUsed = pi;
                 continue;
             }
+            point<T> candidate = spans[pi][indices[pi] % spans[pi].size()];
             side orientation = nextHullPoint.sideOfLine(candidate, prevHullPoint);
             if (orientation == side::right || (orientation == side::on && (nextHullPoint - prevHullPoint).lenmh() < (candidate - prevHullPoint).lenmh())) {
                 nextHullPoint = candidate;
+                lastHullUsed = pi;
             }
         }
         if (nextHullPoint == result[start_ind]) {
@@ -97,7 +99,7 @@ int Hull2DMerge(std::vector<std::span<point<T>>>& spans, int H, std::vector<poin
         }
         result.push_back(nextHullPoint);
         size++;
-
+        indices[lastHullUsed]++;
     }
     return -1;
 }
