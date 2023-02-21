@@ -22,7 +22,7 @@ def run_implementations(implementations : List[str]):
                 for implementation_name in implementations:
                     with open('.testcases/tmp.in','r') as test_case_file: 
                         bash_command = [f'./ch.bin', '-q', f'{implementation_name}']
-                        implementation_execution = subprocess.run(bash_command, stdin = test_case_file, capture_output = True)
+                        implementation_execution = subprocess.run(bash_command, stdin = test_case_file, stderr = subprocess.PIPE, stdout = subprocess.PIPE)
                         output =  implementation_execution.stderr.decode("utf-8") 
                         compute_time_line = output.split('\n')[1]
                         compute_time = float(compute_time_line.split()[2][:-2])
