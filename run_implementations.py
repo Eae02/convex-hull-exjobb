@@ -7,7 +7,8 @@ def run_implementations(implementations : List[str]):
     test_cases = [("gencirc.bin", 100, 20),("gencirc.bin", 1000, 20),("gencirc.bin", 10000, 20),("gencirc.bin", 100000, 10),("gencirc.bin", 1000000, 5),("gencirc.bin", 2000000, 5),("gencirc.bin", 4000000, 5)] #test_generator, n, num_iterations
     test_cases.extend([("gensquare.bin", 100, 20),("gensquare.bin", 1000, 20),("gensquare.bin", 10000, 20),("gensquare.bin", 100000, 10),("gensquare.bin", 1000000, 5),("gensquare.bin", 2000000, 5),("gensquare.bin", 4000000, 5),("gensquare.bin", 10000000, 5)])
     results = [] # Table of results containing: implementation_name, test_generator, seed, n, compute_time
-    with open('results.csv','w') as f:
+    subprocess.run(['mkdir', 'results'])
+    with open('results/times.csv','w') as f:
         f.write("implementation_name,test_generator,seed,n,compute_time(ms)\n")
 
         seed = 1000
@@ -39,7 +40,7 @@ def main():
     run_implementations(implementations)
     if len(sys.argv)>1 and sys.argv[1] == "plot":
         import plot_results
-        plot_results.plot_results()
+        plot_results.plot_results('results/times.csv')
 
 if __name__ == "__main__":
     main()

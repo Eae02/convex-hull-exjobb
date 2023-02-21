@@ -1,9 +1,11 @@
 
 import pandas as pd
 import matplotlib.pyplot as plt
+import sys
 
-def plot_results():
-    df = pd.read_csv('results.csv')
+def plot_results(file_name = 'results/times.csv'):
+
+    df = pd.read_csv(file_name)
 
     # Plot from square dataset
     square_times = df.loc[df['test_generator']=='gensquare.bin'].drop(columns=['seed','test_generator'])
@@ -17,7 +19,7 @@ def plot_results():
         df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True)
     plt.title("Running time for different planar convex hull algorithms on square dataset.")
     plt.ylabel("Computation time per input point (us)")
-    plt.savefig('square_results')
+    plt.savefig('results/square_plot')
 
     # Plot from circle dataset
     circ_times = df.loc[df['test_generator']=='gencirc.bin'].drop(columns=['seed','test_generator'])
@@ -31,7 +33,10 @@ def plot_results():
         df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True)
     plt.title("Running time for different planar convex hull algorithms on circ dataset.")
     plt.ylabel("Computation time per input point (us)")
-    plt.savefig('circ_results')
+    plt.savefig('results/circ_plot')
 
 if __name__ == "__main__":
-    plot_results()
+    if len(sys.argv)>1:
+        plot_results(sys.argv[1])
+    else:
+        plot_results()

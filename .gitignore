@@ -7,5 +7,4 @@
 *.bin
 *.out
 *.in
-*.png
-results.csv
+/results
