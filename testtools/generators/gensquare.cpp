@@ -15,6 +15,6 @@ void generatePoints(std::vector<point>& points, rand_generator& rng) {
 		double x = distribution(rng);
 		double y = distribution(rng);
 		p.x = cosR * x - sinR * y;
-		p.y = sinR * y + cosR * x;
+		p.y = sinR * x + cosR * y;
 	}
 }
