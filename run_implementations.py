@@ -6,6 +6,7 @@ import sys
 def run_implementations(implementations : List[str]):
     test_cases = [("gencirc.bin", 100, 20),("gencirc.bin", 1000, 20),("gencirc.bin", 10000, 20),("gencirc.bin", 100000, 10),("gencirc.bin", 1000000, 5),("gencirc.bin", 2000000, 5),("gencirc.bin", 4000000, 5)] #test_generator, n, num_iterations
     test_cases.extend([("gensquare.bin", 100, 20),("gensquare.bin", 1000, 20),("gensquare.bin", 10000, 20),("gensquare.bin", 100000, 10),("gensquare.bin", 1000000, 5),("gensquare.bin", 2000000, 5),("gensquare.bin", 4000000, 5),("gensquare.bin", 10000000, 5)])
+    test_cases.extend([("gendisk.bin", 100, 20),("gendisk.bin", 1000, 20),("gendisk.bin", 10000, 20),("gendisk.bin", 100000, 10),("gendisk.bin", 1000000, 5),("gendisk.bin", 2000000, 5),("gendisk.bin", 4000000, 5),("gendisk.bin", 10000000, 5)])
     results = [] # Table of results containing: implementation_name, test_generator, seed, n, compute_time
     subprocess.run(['mkdir', 'results'])
     with open('results/times.csv','w') as f:
@@ -36,7 +37,20 @@ def run_implementations(implementations : List[str]):
 
 
 def main():
-    implementations = ["chan_id3", "merge_hull", "merge_hull_rewrite", "cgal_akl_toussaint", "cgal_graham", "dc_preparata_hong_rewrite", "impl1", "qh_rec"]
+    # Uncomment to pick which implementations to run on
+
+    # All non-jarvis sequential implementations
+    # implementations = ["cgal_akl_toussaint", "cgal_bykat", "cgal_eddy", "cgal_graham", "chan", "chan_id3", "dc_preparata_hong", "dc_preparata_hong_rewrite", "impl1", "merge_hull", "merge_hull_rewrite", "qh_rec", "qhp_seq"]
+    
+    # A subset of sequential implementations
+    # implementations = ["chan_id3", "merge_hull", "merge_hull_rewrite", "cgal_akl_toussaint", "cgal_graham", "dc_preparata_hong_rewrite", "impl1", "qh_rec"]
+
+    # Comparisons with parallell implementations
+    # implementations = ["impl1", "impl1_par", "qh_rec", "qh_recpar", "qhp", "qhp_nr", "qhp_seq", "qh_avx"]
+
+    # All implementations that run on POWER
+    implementations = ["chan", "chan_id3", "dc_preparata_hong", "dc_preparata_hong_rewrite", "impl1", "impl1_par", "merge_hull", "merge_hull_rewrite", "qh_rec", "qh_recpar", "qhp", "qhp_nr", "qhp_seq"]
+    
     run_implementations(implementations)
     if len(sys.argv)>1 and sys.argv[1] == "plot":
         import plot_results

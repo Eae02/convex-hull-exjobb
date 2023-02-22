@@ -1,7 +1,11 @@
 
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import sys
+
+
+cmap = mpl.colormaps['tab20']
 
 def plot_results(file_name = 'results/times.csv'):
 
@@ -13,12 +17,12 @@ def plot_results(file_name = 'results/times.csv'):
     square_times['time_per_point'] = square_times['compute_time(ms)']/square_times['n']*1000
     print(square_times.head())
     print(square_times.columns)
-
-    fig, ax = plt.subplots(figsize=(8,6),)
-    for label, df_2 in square_times.groupby(['implementation_name']):
-        df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True)
+    fig, ax = plt.subplots(figsize=(16,12))
+    for idx,(label, df_2) in enumerate(square_times.groupby(['implementation_name'])):
+        df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, logy=True, color = cmap(idx))
     plt.title("Running time for different planar convex hull algorithms on square dataset.")
     plt.ylabel("Computation time per input point (us)")
+
     plt.savefig('results/square_plot')
 
     # Plot from circle dataset
@@ -28,12 +32,26 @@ def plot_results(file_name = 'results/times.csv'):
     print(circ_times.head())
     print(circ_times.columns)
 
-    fig, ax = plt.subplots(figsize=(8,6),)
-    for label, df_2 in circ_times.groupby(['implementation_name']):
-        df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True)
+    fig, ax = plt.subplots(figsize=(16,12))
+    for idx,(label, df_2) in enumerate(circ_times.groupby(['implementation_name'])):
+        df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, logy=True, color = cmap(idx))
     plt.title("Running time for different planar convex hull algorithms on circ dataset.")
     plt.ylabel("Computation time per input point (us)")
     plt.savefig('results/circ_plot')
+
+    # Plot from disk dataset
+    disk_times = df.loc[df['test_generator']=='gendisk.bin'].drop(columns=['seed','test_generator'])
+    disk_times = disk_times.groupby(by=['implementation_name','n']).mean().reset_index()
+    disk_times['time_per_point'] = disk_times['compute_time(ms)']/disk_times['n']*1000
+    print(disk_times.head())
+    print(disk_times.columns)
+
+    fig, ax = plt.subplots(figsize=(16,12))
+    for idx,(label, df_2) in enumerate(disk_times.groupby(['implementation_name'])):
+        df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, logy=True, color = cmap(idx))
+    plt.title("Running time for different planar convex hull algorithms on disk dataset.")
+    plt.ylabel("Computation time per input point (us)")
+    plt.savefig('results/disk_plot')
 
 if __name__ == "__main__":
     if len(sys.argv)>1:
