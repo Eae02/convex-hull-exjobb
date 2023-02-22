@@ -31,7 +31,7 @@ void quickhullParallel(std::vector<pointd>& pts, bool removePoints) {
 	
 	//Moves points so that points below the line come first
 	auto itFirstAbove = std::partition(ep, pts.begin(), pts.end(), [&] (const pointd& p) {
-		return p.sideOfLine(allMinPt, allMaxPt) != side::left;
+		return p.sideOfLine(allMinPt, allMaxPt, 0.00001) != side::left;
 	});
 	uint32_t numBelow = itFirstAbove - pts.begin();
 	
