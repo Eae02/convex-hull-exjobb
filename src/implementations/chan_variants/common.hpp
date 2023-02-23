@@ -3,7 +3,7 @@
 #include <vector>
 #include <climits>
 #include <cstddef>
-#include "../point.hpp"
+#include "../../point.hpp"
 
 
 // Merge k convex hulls given by Pdiv, aborting if resulting hull has more than H points.

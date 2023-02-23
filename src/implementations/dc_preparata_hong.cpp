@@ -1,6 +1,5 @@
 #include "../hull_impl.hpp"
 #include "../point.hpp"
-#include "common.hpp"
 
 #include <algorithm>
 #include <vector>

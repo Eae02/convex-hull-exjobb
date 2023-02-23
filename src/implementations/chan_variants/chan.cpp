@@ -1,7 +1,7 @@
 #include "common.hpp"
-#include "impl1.hpp"
-#include "../hull_impl.hpp"
-#include "../point.hpp"
+#include "../impl1.hpp"
+#include "../../hull_impl.hpp"
+#include "../../point.hpp"
 
 #include <algorithm>
 #include <vector>
@@ -35,7 +35,7 @@ bool Hull2D(std::vector<point<T>>& pts, int m, int H) {
 template <typename T>
 void runChan(std::vector<point<T>>& pts) {
 	if (pts.size() <= 2) return;
-    long long t = 1;
+    long long t = 3;
     while (true) {
         int H = std::min((long long) pts.size(), 1LL << (1LL << t));
         if (H < 1) { // Catch overflow

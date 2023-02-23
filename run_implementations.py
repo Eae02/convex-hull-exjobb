@@ -51,6 +51,9 @@ def main():
     # All implementations that run on POWER
     implementations = ["chan", "chan_id3", "dc_preparata_hong", "dc_preparata_hong_rewrite", "impl1", "impl1_par", "merge_hull", "merge_hull_rewrite", "qh_rec", "qh_recpar", "qhp", "qhp_nr", "qhp_seq"]
     
+    # Chan variants
+    # implementations = ["chan", "chan_id3", "merge_hull", "impl1", "qh_rec", "dc_preparata_hong_rewrite"]
+
     run_implementations(implementations)
     if len(sys.argv)>1 and sys.argv[1] == "plot":
         import plot_results
