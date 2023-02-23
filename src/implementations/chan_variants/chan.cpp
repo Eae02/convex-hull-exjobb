@@ -1,48 +1,60 @@
 #include "common.hpp"
-#include "../impl1.hpp"
 #include "../../hull_impl.hpp"
 #include "../../point.hpp"
 
-#include <algorithm>
 #include <vector>
 #include <math.h>
+#include <cassert>
 
 template <typename T>
-bool Hull2D(std::vector<point<T>>& pts, int m, int H) {
-    int p = (pts.size() + m - 1)/m; // Number of partitions, ceil(n/m)
-    std::vector<std::vector<point<T>>> Pdiv(p); // Division of the points into p sets
-    for (size_t i = 0; i < pts.size(); i++) {
-        Pdiv[i%p].push_back(pts[i]);
+bool Hull2D(std::vector<point<T>>& pts, long long m, long long H, bool use_idea_1) {
+    long long numsets = (pts.size() + m - 1)/m; // Number of partitions, ceil(n/m)
+
+    // Division of the points into sets of size m and run O(nlogn) algorithm on each set.
+    std::vector<std::span<point<T>>> spans;
+    for (long long i = 0; i < numsets; i++) {
+        long long start = i*m;
+        long long end = std::min((i+1)*m, (long long) pts.size());
+        std::span<point<T>> current_span = std::span<point<T>>(pts.begin()+start,pts.begin()+end);
+        long long newsize = monotone_chain(current_span);
+        current_span = current_span.subspan(0,newsize); // Truncate span to fit created hull
+        spans.push_back(current_span);
     }
-    for (int pi = 0; pi < p; pi++) {
-        runImpl1(Pdiv[pi]);
-    }
+    
     std::vector<point<T>> result;
-    if (Hull2DMerge(Pdiv, H, result)) {
+    if (Merge2DHulls(spans, result, H) > -1) {
         std::swap(result, pts);
         return true;
     }
 
-    // Refinement idea 1 from chans paper, remove known interior points from further consideration.
-    pts.clear();
-    for (int pi = 0; pi < p; pi++) {
-        std::copy(Pdiv[pi].begin(), Pdiv[pi].end(), std::back_inserter(pts));
+    if (use_idea_1) {
+        // Refinement idea 1 from chans paper, remove known interior points from further consideration.
+        std::vector<point<T>> temp;
+        for (long long i = 0; i < numsets; i++) {
+            std::copy(spans[i].begin(), spans[i].end(), std::back_inserter(temp));
+        }
+        std::swap(temp,pts);
     }
 
     return false;
 }
 
 template <typename T>
-void runChan(std::vector<point<T>>& pts) {
+static void runChan(std::vector<point<T>>& pts, bool use_idea_1, bool use_idea_2) {
 	if (pts.size() <= 2) return;
     long long t = 3;
     while (true) {
-        int H = std::min((long long) pts.size(), 1LL << (1LL << t));
-        if (H < 1) { // Catch overflow
-            H = pts.size();
+        // Avoid overflow issues, cap problem size at 2^40
+        long long exponent = std::min(40LL, 1LL << t);
+
+        long long H = std::min((long long) pts.size(), 1LL << exponent);
+        long long m = H;
+        if (use_idea_2) {
+            m = H * exponent;
+            assert(m > H); // Check for overflows
         }
         // Refinement idea 2 from chans paper, put m = H*logH
-        if (Hull2D(pts, H * (1LL << t), H)) {
+        if (Hull2D(pts, m, H, use_idea_1)) {
             return;
         }
         t++;
@@ -50,7 +62,25 @@ void runChan(std::vector<point<T>>& pts) {
 }
 
 DEF_HULL_IMPL({
-	.name = "chan",
-	.runInt = &runChan<int64_t>,
-	.runDouble = &runChan<double>,
+	.name = "chan_plain",
+	.runInt = std::bind(runChan<int64_t>, std::placeholders::_1, false, false),
+	.runDouble = std::bind(runChan<double>, std::placeholders::_1, false, false)
+});
+
+DEF_HULL_IMPL({
+	.name = "chan_idea1",
+	.runInt = std::bind(runChan<int64_t>, std::placeholders::_1, true, false),
+	.runDouble = std::bind(runChan<double>, std::placeholders::_1, true, false)
+});
+
+DEF_HULL_IMPL({
+	.name = "chan_idea2",
+	.runInt = std::bind(runChan<int64_t>, std::placeholders::_1, true, true),
+	.runDouble = std::bind(runChan<double>, std::placeholders::_1, true, true)
+});
+
+DEF_HULL_IMPL({
+	.name = "chan_idea12",
+	.runInt = std::bind(runChan<int64_t>, std::placeholders::_1, true, true),
+	.runDouble = std::bind(runChan<double>, std::placeholders::_1, true, true)
 });

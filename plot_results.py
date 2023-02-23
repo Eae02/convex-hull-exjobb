@@ -19,10 +19,10 @@ def plot_results(file_name = 'results/times.csv'):
     print(square_times.columns)
     fig, ax = plt.subplots(figsize=(16,12))
     for idx,(label, df_2) in enumerate(square_times.groupby(['implementation_name'])):
-        df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, logy=True, color = cmap(idx))
+        df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, color = cmap(idx))
     plt.title("Running time for different planar convex hull algorithms on square dataset.")
     plt.ylabel("Computation time per input point (us)")
-
+    ax.set_ylim(ymin=0)
     plt.savefig('results/square_plot')
 
     # Plot from circle dataset
@@ -31,12 +31,12 @@ def plot_results(file_name = 'results/times.csv'):
     circ_times['time_per_point'] = circ_times['compute_time(ms)']/circ_times['n']*1000
     print(circ_times.head())
     print(circ_times.columns)
-
     fig, ax = plt.subplots(figsize=(16,12))
     for idx,(label, df_2) in enumerate(circ_times.groupby(['implementation_name'])):
-        df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, logy=True, color = cmap(idx))
+        df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, color = cmap(idx))
     plt.title("Running time for different planar convex hull algorithms on circ dataset.")
     plt.ylabel("Computation time per input point (us)")
+    ax.set_ylim(ymin=0)
     plt.savefig('results/circ_plot')
 
     # Plot from disk dataset
@@ -48,8 +48,9 @@ def plot_results(file_name = 'results/times.csv'):
 
     fig, ax = plt.subplots(figsize=(16,12))
     for idx,(label, df_2) in enumerate(disk_times.groupby(['implementation_name'])):
-        df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, logy=True, color = cmap(idx))
+        df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, color = cmap(idx))
     plt.title("Running time for different planar convex hull algorithms on disk dataset.")
+    ax.set_ylim(ymin=0)
     plt.ylabel("Computation time per input point (us)")
     plt.savefig('results/disk_plot')
 

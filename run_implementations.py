@@ -26,7 +26,14 @@ def run_implementations(implementations : List[str]):
                         bash_command = [f'./ch.bin', '-q', f'{implementation_name}']
                         implementation_execution = subprocess.run(bash_command, stdin = test_case_file, stderr = subprocess.PIPE, stdout = subprocess.PIPE)
                         output =  implementation_execution.stderr.decode("utf-8") 
-                        compute_time_line = output.split('\n')[1]
+                        try:
+                            compute_time_line = output.split('\n')[1]
+                        except:
+                            print(f'Implementation {implementation_name} failed. Outputs:')
+                            print("Return code:", implementation_execution.returncode)
+                            print("Stdout:", implementation_execution.stdout)
+                            print("Stderr:", implementation_execution.stderr)
+                            exit(0)
                         compute_time = float(compute_time_line.split()[2][:-2])
                         #print(test_generator,n,seed,implementation_name,compute_time)
                         results.append((implementation_name, test_generator, seed, n, compute_time))
@@ -40,19 +47,19 @@ def main():
     # Uncomment to pick which implementations to run on
 
     # All non-jarvis sequential implementations
-    # implementations = ["cgal_akl_toussaint", "cgal_bykat", "cgal_eddy", "cgal_graham", "chan", "chan_id3", "dc_preparata_hong", "dc_preparata_hong_rewrite", "impl1", "merge_hull", "merge_hull_rewrite", "qh_rec", "qhp_seq"]
+    # implementations = ["cgal_akl_toussaint", "cgal_bykat", "cgal_eddy", "cgal_graham", "chan_plain", "chan_idea12", "dc_preparata_hong", "dc_preparata_hong_rewrite", "impl1", "merge_hull", "merge_hull_rewrite", "qh_rec", "qhp_seq"]
     
     # A subset of sequential implementations
-    # implementations = ["chan_id3", "merge_hull", "merge_hull_rewrite", "cgal_akl_toussaint", "cgal_graham", "dc_preparata_hong_rewrite", "impl1", "qh_rec"]
+    # implementations = ["chan_idea12", "merge_hull", "merge_hull_rewrite", "cgal_akl_toussaint", "cgal_graham", "dc_preparata_hong_rewrite", "impl1", "qh_rec"]
 
     # Comparisons with parallell implementations
     # implementations = ["impl1", "impl1_par", "qh_rec", "qh_recpar", "qhp", "qhp_nr", "qhp_seq", "qh_avx"]
 
     # All implementations that run on POWER
-    implementations = ["chan", "chan_id3", "dc_preparata_hong", "dc_preparata_hong_rewrite", "impl1", "impl1_par", "merge_hull", "merge_hull_rewrite", "qh_rec", "qh_recpar", "qhp", "qhp_nr", "qhp_seq"]
+    # implementations = ["chan_plain", "chan_idea12", "dc_preparata_hong", "dc_preparata_hong_rewrite", "impl1", "impl1_par", "merge_hull", "merge_hull_rewrite", "qh_rec", "qh_recpar", "qhp", "qhp_nr", "qhp_seq"]
     
     # Chan variants
-    # implementations = ["chan", "chan_id3", "merge_hull", "impl1", "qh_rec", "dc_preparata_hong_rewrite"]
+    implementations = ["chan_plain", "chan_idea12", "qh_rec", "merge_hull", "merge_hull_rewrite", "impl1"]
 
     run_implementations(implementations)
     if len(sys.argv)>1 and sys.argv[1] == "plot":
