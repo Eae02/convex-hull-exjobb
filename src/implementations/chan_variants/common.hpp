@@ -108,7 +108,7 @@ inline long long Merge2DHulls(std::vector<std::span<point<T>>>& spans, std::vect
 // Takes a set of spans representing hulls. Splits these into sets of size exponent and merges them
 // replacing the spans in the spans vector.
 // If in_place is true b is just used for temporary storage, and resulting hulls will be written in the location of the spans
-// It is important that the spans in spans are consecutive in memory, (possibly with empty gaps).
+// It is important that the spans are consecutive and in order in memory, (possibly with empty gaps).
 // If in_place is false, all created hulls are appended to the b vector.
 template <typename T>
 inline void pairwiseMerge(std::vector<std::span<point<T>>>& spans, size_t exponent, std::vector<point<T>>& b, bool in_place = false) {

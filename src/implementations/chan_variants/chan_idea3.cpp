@@ -62,13 +62,13 @@ static void runChanId3(std::vector<point<T>>& pts1, size_t exponent, bool use_id
 }
 
 DEF_HULL_IMPL({
-	.name = "chan_idea3",
+	.name = "chan_idea3", // Something like O(n loglog m) expected time on randomized inputs.
 	.runInt = std::bind(runChanId3<int64_t>, std::placeholders::_1, 3, false),
 	.runDouble = std::bind(runChanId3<double>, std::placeholders::_1, 3, false),
 });
 
 DEF_HULL_IMPL({
-	.name = "chan_refined",
+	.name = "chan_refined", // Has O(n) expected time complexity on randomized inputs.
 	.runInt = std::bind(runChanId3<int64_t>, std::placeholders::_1, 3, true),
 	.runDouble = std::bind(runChanId3<double>, std::placeholders::_1, 3, true),
 });
