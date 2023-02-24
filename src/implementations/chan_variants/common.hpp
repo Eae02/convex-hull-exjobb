@@ -3,12 +3,13 @@
 #include <vector>
 #include <span>
 #include <algorithm>
+#include <cassert>
 #include "../../point.hpp"
 
 
 // Adaption of Impl1 to work with span and return new length. Runs in O(n logn) time
 template <typename T>
-size_t monotone_chain(std::span<point<T>>& pts) {
+inline size_t monotone_chain(std::span<point<T>>& pts) {
 	if (pts.size() <= 1) return pts.size();
 	std::sort(pts.begin(), pts.end());
 	std::vector<point<T>> h;
@@ -35,7 +36,7 @@ size_t monotone_chain(std::span<point<T>>& pts) {
 // Appends generated hull to result vector.
 // Hulls are assumed to be given in CCW order with first point being the leftmost point (lowest in case of ties).
 template <typename T>
-long long Merge2DHulls(std::vector<std::span<point<T>>>& spans, std::vector<point<T>>& result, long long H = -1, bool in_place = false) {
+inline long long Merge2DHulls(std::vector<std::span<point<T>>>& spans, std::vector<point<T>>& result, long long H = -1, bool in_place = false) {
     size_t p = spans.size();
     std::vector<size_t> indices(p,0);
     long long output_size = 0;
@@ -110,7 +111,7 @@ long long Merge2DHulls(std::vector<std::span<point<T>>>& spans, std::vector<poin
 // It is important that the spans in spans are consecutive in memory, (possibly with empty gaps).
 // If in_place is false, all created hulls are appended to the b vector.
 template <typename T>
-void pairwiseMerge(std::vector<std::span<point<T>>>& spans, size_t exponent, std::vector<point<T>>& b, bool in_place = false) {
+inline void pairwiseMerge(std::vector<std::span<point<T>>>& spans, size_t exponent, std::vector<point<T>>& b, bool in_place = false) {
     std::vector<std::span<point<T>>> output;
     std::vector<std::span<point<T>>> temp;
     for (size_t i = 0; i < spans.size(); i++) {
@@ -134,4 +135,20 @@ void pairwiseMerge(std::vector<std::span<point<T>>>& spans, size_t exponent, std
         }
     }
     spans = std::move(output);
+}
+
+inline long long calcH(long long t) {
+    long long exponent = std::min(40LL, 1LL << t);
+    return 1LL << exponent;
+}
+
+inline long long calcM(long long t, bool use_idea_2 = false) {
+    if (!use_idea_2) {
+        return calcH(t);
+    }
+    long long exponent = std::min(40LL, 1LL << t);
+    long long H = calcH(t);
+    long long m = H*exponent;
+    assert(m > H); // Check for overflows
+    return m;
 }

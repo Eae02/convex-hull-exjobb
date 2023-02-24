@@ -7,7 +7,7 @@
 #include <cassert>
 
 template <typename T>
-bool Hull2D(std::vector<point<T>>& pts, long long m, long long H, bool use_idea_1) {
+static bool Hull2D(std::vector<point<T>>& pts, long long m, long long H, bool use_idea_1) {
     long long numsets = (pts.size() + m - 1)/m; // Number of partitions, ceil(n/m)
 
     // Division of the points into sets of size m and run O(nlogn) algorithm on each set.
@@ -44,15 +44,8 @@ static void runChan(std::vector<point<T>>& pts, bool use_idea_1, bool use_idea_2
 	if (pts.size() <= 2) return;
     long long t = 3;
     while (true) {
-        // Avoid overflow issues, cap problem size at 2^40
-        long long exponent = std::min(40LL, 1LL << t);
-
-        long long H = std::min((long long) pts.size(), 1LL << exponent);
-        long long m = H;
-        if (use_idea_2) {
-            m = H * exponent;
-            assert(m > H); // Check for overflows
-        }
+        long long H = calcH(t); // 2ˆ2ˆt 
+        long long m = calcM(t, use_idea_2); // 2ˆ2ˆt (*2ˆt if use_idea_2) 
         // Refinement idea 2 from chans paper, put m = H*logH
         if (Hull2D(pts, m, H, use_idea_1)) {
             return;

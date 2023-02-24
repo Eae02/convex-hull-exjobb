@@ -29,22 +29,19 @@ static void runMergeHull(std::vector<point<T>>& pts1, size_t exponent) {
     }
     std::vector<point<T>> pts2; 
     pts2.reserve(pts1.size()); // Assert that pts2 never has to move the data. This would cause the spans to be invalid.
+
+    std::vector<point<T>> *a = &pts1, *b = &pts2; // a always points to vector currently containing the points.
     bool pts1_has_spans = true;
     while (spans.size() > 1) {
-        if (pts1_has_spans) {
-            pairwiseMerge(spans, exponent, pts2);
-            pts1.clear();
-        } else {
-            pairwiseMerge(spans, exponent, pts1);
-            pts2.clear();
-        }
+        pairwiseMerge(spans, exponent, *b); // Move spans from a to b
+        a->clear();
+        std::swap(a,b); 
         pts1_has_spans = !pts1_has_spans;
     }
-    if (pts1_has_spans) {
-        pts1.resize(spans[0].size());
-    } else {
+    if (!pts1_has_spans) {
         pts1 = pts2;
     }
+    pts1.resize(spans[0].size());
     return;
 }
 
