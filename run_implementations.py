@@ -56,10 +56,13 @@ def main():
     # implementations = ["impl1", "impl1_par", "qh_rec", "qh_recpar", "qhp", "qhp_nr", "qhp_seq", "qh_avx"]
 
     # All implementations that run on POWER
-    # implementations = ["chan_plain", "chan_idea12", "dc_preparata_hong", "dc_preparata_hong_rewrite", "impl1", "impl1_par", "merge_hull", "merge_hull_reduce_copy", "qh_rec", "qh_recpar", "qhp", "qhp_nr", "qhp_seq"]
+    # implementations = ["chan_plain", "chan_idea1", "chan_idea_2", "chan_idea12", "chan_idea3", "chan_refined", "dc_preparata_hong", "dc_preparata_hong_rewrite", "impl1", "impl1_par", "merge_hull", "merge_hull_chan_trick", "merge_hull_reduce_copy", "qh_rec", "qh_recpar", "qhp", "qhp_nr", "qhp_seq"]
     
+    # A subset of implementations that run on POWER
+    implementations = ["chan_plain", "chan_refined", "qh_rec", "qh_recpar", "merge_hull_reduce_copy", "impl1", "impl1_par", "dc_preparata_hong_rewrite", "qhp", "qhp_seq"]
+
     # Chan variants
-    implementations = ["chan_plain", "chan_idea12", "chan_idea3", "chan_refined", "qh_rec", "merge_hull_reduce_copy", "merge_hull_chan_trick", "impl1"]
+    # implementations = ["chan_plain", "chan_idea12", "chan_idea3", "chan_refined", "qh_rec", "merge_hull_reduce_copy", "merge_hull_chan_trick", "impl1"]
 
     run_implementations(implementations)
     if len(sys.argv)>1 and sys.argv[1] == "plot":
