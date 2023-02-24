@@ -59,7 +59,7 @@ def main():
     # implementations = ["chan_plain", "chan_idea12", "dc_preparata_hong", "dc_preparata_hong_rewrite", "impl1", "impl1_par", "merge_hull", "merge_hull_reduce_copy", "qh_rec", "qh_recpar", "qhp", "qhp_nr", "qhp_seq"]
     
     # Chan variants
-    implementations = ["chan_plain", "chan_idea12", "qh_rec", "merge_hull_reduce_copy", "impl1"]
+    implementations = ["chan_plain", "chan_idea12", "chan_idea3", "chan_refined", "qh_rec", "merge_hull_reduce_copy", "merge_hull_chan_trick", "impl1"]
 
     run_implementations(implementations)
     if len(sys.argv)>1 and sys.argv[1] == "plot":
