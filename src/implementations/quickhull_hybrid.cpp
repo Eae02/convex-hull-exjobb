@@ -1,3 +1,9 @@
+/*
+Quickhull that switches to a different algorithm at at certain point.
+Write :D<n> or :P<n> after the implementation name to switch at depth <n> or when there are at most <n> points left, respectively.
+For example, qh_hybrid_jw:P10 will switch to jarvis wrap when there are 10 points remaining.
+ */
+
 #include "../hull_impl.hpp"
 #include "../point.hpp"
 #include "monotone_chain.hpp"
@@ -5,6 +11,7 @@
 #include <algorithm>
 #include <vector>
 #include <span>
+#include <charconv>
 #include <cmath>
 
 template <typename T>
@@ -109,13 +116,13 @@ void quickhullHybridRec(
 }
 
 template <typename T>
-void runQuickhullHybrid(std::vector<point<T>>& pts) {
+void runQuickhullHybrid(std::vector<point<T>>& pts, void(*innerImpl)(std::span<point<T>>, point<T>, point<T>)) {
 	HybridData<T> hybridData;
-	hybridData.impl = &solveOneMonotoneChain<T>;
-	hybridData.changeThresholdDepth = 2;
-	
-	//hybridData.changeThresholdPoints = 50;
-	//hybridData.impl = &hybridJarvisWrap<T>;
+	hybridData.impl = innerImpl;
+	if (auto value = getImplArgInt("D"))
+		hybridData.changeThresholdDepth = *value;
+	if (auto value = getImplArgInt("P"))
+		hybridData.changeThresholdPoints = *value;
 	
 	size_t leftmost = std::min_element(pts.begin(), pts.end()) - pts.begin();
 	point<T> leftmostPt = pts[leftmost];
@@ -138,7 +145,13 @@ void runQuickhullHybrid(std::vector<point<T>>& pts) {
 }
 
 DEF_HULL_IMPL({
-	.name = "qh_hybrid",
-	.runInt = &runQuickhullHybrid<int64_t>,
-	.runDouble = &runQuickhullHybrid<double>,
+	.name = "qh_hybrid_mc",
+	.runInt = std::bind(runQuickhullHybrid<int64_t>, std::placeholders::_1, &solveOneMonotoneChain<int64_t>),
+	.runDouble = std::bind(runQuickhullHybrid<double>, std::placeholders::_1, &solveOneMonotoneChain<double>),
+});
+
+DEF_HULL_IMPL({
+	.name = "qh_hybrid_jw",
+	.runInt = std::bind(runQuickhullHybrid<int64_t>, std::placeholders::_1, &hybridJarvisWrap<int64_t>),
+	.runDouble = std::bind(runQuickhullHybrid<double>, std::placeholders::_1, &hybridJarvisWrap<double>),
 });

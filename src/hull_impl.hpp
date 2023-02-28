@@ -3,6 +3,7 @@
 #include <string_view>
 #include <vector>
 #include <functional>
+#include <optional>
 
 #include "point.hpp"
 
@@ -16,6 +17,10 @@ struct HullImpl {
 };
 
 extern std::vector<HullImpl>* hullImplementations;
+
+extern std::string_view implArgs;
+
+std::optional<int> getImplArgInt(std::string_view argPrefix);
 
 int _defHullImpl(HullImpl impl);
 

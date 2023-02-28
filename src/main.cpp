@@ -129,6 +129,12 @@ int main(int argv, char** argc) {
 		printImplementationNamesAndExit();
 	}
 	
+	size_t implNameColonPos = implName.find(':');
+	if (implNameColonPos != std::string_view::npos) {
+		implArgs = implName.substr(implNameColonPos + 1);
+		implName = implName.substr(0, implNameColonPos);
+	}
+	
 	auto implIterator = std::find_if(
 		hullImplementations->begin(), hullImplementations->end(),
 		[&] (const HullImpl& impl) { return impl.name == implName; });
