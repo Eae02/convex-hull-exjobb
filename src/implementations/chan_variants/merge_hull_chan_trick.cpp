@@ -54,7 +54,7 @@ static void runMergeHullChanTrick(std::vector<point<T>>& pts1, size_t exponent) 
 }
 
 DEF_HULL_IMPL({
-	.name = "merge_hull_chan_trick", // Something like O(n loglog m) expected time on randomized inputs.
+	.name = "merge_hull_chan_trick", // O(n) expected time on randomized inputs.
 	.runInt = std::bind(runMergeHullChanTrick<int64_t>, std::placeholders::_1, 3),
 	.runDouble = std::bind(runMergeHullChanTrick<double>, std::placeholders::_1, 3),
 });

@@ -22,7 +22,7 @@ def plot_results(file_name = 'results/times.csv'):
         df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, color = cmap(idx))
     plt.title("Running time for different planar convex hull algorithms on square dataset.")
     plt.ylabel("Computation time per input point (us)")
-    ax.set_ylim(ymin=0)
+    ax.set_ylim(ymin=0, ymax = min(1, square_times['time_per_point'].max()))
     plt.savefig('results/square_plot')
 
     # Plot from circle dataset
@@ -36,6 +36,7 @@ def plot_results(file_name = 'results/times.csv'):
         df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, color = cmap(idx))
     plt.title("Running time for different planar convex hull algorithms on circ dataset.")
     plt.ylabel("Computation time per input point (us)")
+    ax.set_ylim(ymin=0, ymax = min(2.5, circ_times['time_per_point'].max()))
     ax.set_ylim(ymin=0)
     plt.savefig('results/circ_plot')
 
@@ -50,6 +51,7 @@ def plot_results(file_name = 'results/times.csv'):
     for idx,(label, df_2) in enumerate(disk_times.groupby(['implementation_name'])):
         df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, color = cmap(idx))
     plt.title("Running time for different planar convex hull algorithms on disk dataset.")
+    ax.set_ylim(ymin=0, ymax = min(1, disk_times['time_per_point'].max()))
     ax.set_ylim(ymin=0)
     plt.ylabel("Computation time per input point (us)")
     plt.savefig('results/disk_plot')

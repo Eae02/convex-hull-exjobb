@@ -47,12 +47,13 @@ def main():
     # Uncomment to pick which implementations to run on
 
     # All non-jarvis sequential implementations
-    # implementations = ["cgal_akl_toussaint", "cgal_bykat", "cgal_eddy", "cgal_graham", "chan_plain", "chan_idea12", "dc_preparata_hong", "dc_preparata_hong_rewrite", "impl1", "merge_hull", "merge_hull_reduce_copy", "qh_rec", "qhp_seq"]
+    # implementations = ["cgal_akl_toussaint", "cgal_bykat", "cgal_eddy", "cgal_graham", "chan_plain", "chan_idea1", "chan_idea2", "chan_idea12", "chan_idea3", "chan_refined", "dc_preparata_hong", "dc_preparata_hong_rewrite", "impl1", "merge_hull", "merge_hull_chan_trick", "merge_hull_reduce_copy", "qh_rec", "qhp_seq"]
     
-    # A subset of sequential implementations
-    # implementations = ["chan_idea12", "merge_hull", "merge_hull_reduce_copy", "cgal_akl_toussaint", "cgal_graham", "dc_preparata_hong_rewrite", "impl1", "qh_rec"]
+    # Some sequential implementations
+    # implementations = ["cgal_akl_toussaint", "cgal_graham", "chan_plain", "chan_refined", "merge_hull_reduce_copy", "dc_preparata_hong_rewrite", "impl1", "qh_rec"]
 
-
+    # Some sequential and parallel implementations
+    # implementations = ["cgal_akl_toussaint", "cgal_graham", "chan_plain", "chan_refined", "merge_hull_reduce_copy", "dc_preparata_hong_rewrite", "impl1", "impl1_par", "qh_rec", "qh_recpar", "qh_avx"]
 
     # All sequential implementations that run on POWER
     implementations = ["chan_plain", "chan_idea1", "chan_idea2", "chan_idea12", "chan_idea3", "chan_refined", "dc_preparata_hong", "dc_preparata_hong_rewrite", "impl1", "merge_hull", "merge_hull_chan_trick", "merge_hull_reduce_copy", "qh_rec", "qhp_seq"]
