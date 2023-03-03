@@ -25,10 +25,10 @@ void quickhullRec(
 	point<T> normal = (rightHullPoint - leftHullPoint).rotated90CCW();
 	
 	size_t maxPointIdx = 0;
-	T maxPointDot = normal.dot(pts[0]);
+	T maxPointDot = normal.dot(pts[0] - leftHullPoint);
 	point<T> maxPoint = pts[0];
 	for (size_t i = 1; i < pts.size(); i++) {
-		T dotProduct = normal.dot(pts[i]);
+		T dotProduct = normal.dot(pts[i] - leftHullPoint);
 		if (std::tie(dotProduct, pts[i]) > std::tie(maxPointDot, maxPoint)) {
 			maxPointIdx = i;
 			maxPointDot = dotProduct;
