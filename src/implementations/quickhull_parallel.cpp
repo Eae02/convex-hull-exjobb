@@ -96,7 +96,7 @@ void quickhullParallel(std::vector<pointd>& pts, bool removePoints) {
 				double dist = -INFINITY;
 				if (hullPtR != hullPtL) {
 					pointd normal = (pts[hullPtR] - pts[hullPtL]).rotated90CCW();
-					dist = pts[idx].dot(normal);
+					dist = (pts[idx] - pts[hullPtL]).dot(normal);
 				}
 				return std::make_tuple(hullPtR == UINT32_MAX ? 0 : hullPtR, dist, idx);
 			}

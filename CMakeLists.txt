@@ -17,7 +17,7 @@ else()
 	set_source_files_properties(src/implementations/jarvis_wrap_avx512.cpp PROPERTIES COMPILE_FLAGS "-mavx512f -mavx512vl")	
 	set_source_files_properties(src/implementations/jarvis_wrap_avx.cpp PROPERTIES COMPILE_FLAGS "-mavx")
 	set_source_files_properties(src/implementations/quickhull_avx512.cpp PROPERTIES COMPILE_FLAGS "-mavx512f -mavx512vl")
-	set_source_files_properties(src/implementations/quickhull_avx2.cpp PROPERTIES COMPILE_FLAGS "-mavx -mavx2")
+	set_source_files_properties(src/implementations/quickhull_avx2.cpp PROPERTIES COMPILE_FLAGS "-mavx -mavx2 -mfma")
 endif()
 
 add_executable(ch ${SOURCE_FILES})

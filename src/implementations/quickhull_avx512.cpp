@@ -90,9 +90,11 @@ size_t partitionByLine(const points& ptsIn, points& ptsOut, pointd lineStart, po
 	return numRight;
 }
 
-int findMaxPointIndex(const points& pts, pointd normal) {
+int findMaxPointIndex(const points& pts, pointd offsetPoint, pointd normal) {
 	const auto normalX8 = _mm512_set1_pd(normal.x);
 	const auto normalY8 = _mm512_set1_pd(normal.y);
+	const auto offsetX8 = _mm512_set1_pd(offsetPoint.x);
+	const auto offsetY8 = _mm512_set1_pd(offsetPoint.y);
 	
 	__m256i indices = _mm256_setr_epi32(0, 1, 2, 3, 4, 5, 6, 7);
 	const __m256i indicesInc = _mm256_set1_epi32(8);
@@ -101,9 +103,8 @@ int findMaxPointIndex(const points& pts, pointd normal) {
 	auto maxIndices = _mm256_set1_epi32(0);
 	
 	auto step = [&] (size_t i, uint8_t mask) {
-		auto mulx = _mm512_mul_pd(pts.x[i], normalX8);
-		auto muly = _mm512_mul_pd(pts.y[i], normalY8);
-		auto dot = _mm512_add_pd(mulx, muly);
+		auto mulx = _mm512_mul_pd(_mm512_sub_pd(pts.x[i], offsetX8), normalX8);
+		auto dot = _mm512_fmadd_pd(_mm512_sub_pd(pts.y[i], offsetY8), normalY8, mulx);
 		uint8_t cmpMask = mask & _mm512_cmplt_pd_mask(maxDotValues, dot);
 		maxDotValues = _mm512_mask_blend_pd(cmpMask, maxDotValues, dot);
 		maxIndices = _mm256_mask_blend_epi32(cmpMask, maxIndices, indices);
@@ -139,7 +140,7 @@ void quickhullAvxRec(
 	}
 	
 	const pointd normal = (rightHullPoint - leftHullPoint).rotated90CCW();
-	size_t maxPointIndex = findMaxPointIndex(pts, normal);
+	size_t maxPointIndex = findMaxPointIndex(pts, leftHullPoint, normal);
 	
 	pointd maxPoint(pts.x[maxPointIndex / 8][maxPointIndex % 8], pts.y[maxPointIndex / 8][maxPointIndex % 8]);
 	

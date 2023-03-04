@@ -122,9 +122,11 @@ size_t partitionByLine(points pts, pointd lineStart, pointd lineEnd) {
 	return numRight;
 }
 
-int findMaxPointIndex(points pts, pointd normal) {
+int findMaxPointIndex(points pts, pointd offsetPoint, pointd normal) {
 	const auto normalX4 = _mm256_set1_pd(normal.x);
 	const auto normalY4 = _mm256_set1_pd(normal.y);
+	const auto offsetX4 = _mm256_set1_pd(offsetPoint.x);
+	const auto offsetY4 = _mm256_set1_pd(offsetPoint.y);
 	
 	__m256i indices = _mm256_setr_epi64x(0, 1, 2, 3);
 	const __m256i indicesInc = _mm256_set1_epi64x(4);
@@ -133,9 +135,8 @@ int findMaxPointIndex(points pts, pointd normal) {
 	__m256i maxIndices = _mm256_set1_epi64x(0);
 	
 	pts.forEach([&] (size_t vi, uint32_t activeCompMask) {
-		auto mulx = _mm256_mul_pd(pts.x[vi], normalX4);
-		auto muly = _mm256_mul_pd(pts.y[vi], normalY4);
-		auto dot = _mm256_add_pd(mulx, muly);
+		auto mulx = _mm256_mul_pd(_mm256_sub_pd(pts.x[vi], offsetX4), normalX4);
+		auto dot = _mm256_fmadd_pd(_mm256_sub_pd(pts.y[vi], offsetY4), normalY4, mulx);
 		
 		__m256d cmpResult = _mm256_cmp_pd(maxDotValues, dot, _CMP_LT_OQ);
 		cmpResult = _mm256_and_pd(cmpResult, bitmapToVecmask(activeCompMask));
@@ -165,7 +166,7 @@ void quickhullAvxRec(points pts, pointd leftHullPoint, pointd rightHullPoint, st
 	}
 	
 	const pointd normal = (rightHullPoint - leftHullPoint).rotated90CCW();
-	size_t maxPointIndex = findMaxPointIndex(pts, normal);
+	size_t maxPointIndex = findMaxPointIndex(pts, leftHullPoint, normal);
 	
 	pointd maxPoint = pts.at(maxPointIndex);
 	pts.set(maxPointIndex, pts.at(pts.count() - 1));
