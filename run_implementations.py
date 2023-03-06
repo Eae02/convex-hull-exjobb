@@ -4,7 +4,7 @@ import sys
 
 
 def run_implementations(implementations : List[str]):
-    test_cases = [("gencirc.bin", 100, 20),("gencirc.bin", 1000, 20),("gencirc.bin", 10000, 20),("gencirc.bin", 100000, 10),("gencirc.bin", 1000000, 5),("gencirc.bin", 2000000, 5),("gencirc.bin", 4000000, 5)] #test_generator, n, num_iterations
+    test_cases = [("gencirc.bin", 100, 20),("gencirc.bin", 1000, 20),("gencirc.bin", 10000, 20),("gencirc.bin", 100000, 10),("gencirc.bin", 1000000, 5)]# For larger tests uncomment:,("gencirc.bin", 2000000, 5),("gencirc.bin", 4000000, 5)] #test_generator, n, num_iterations
     test_cases.extend([("gensquare.bin", 100, 20),("gensquare.bin", 1000, 20),("gensquare.bin", 10000, 20),("gensquare.bin", 100000, 10),("gensquare.bin", 1000000, 5),("gensquare.bin", 2000000, 5),("gensquare.bin", 4000000, 5),("gensquare.bin", 10000000, 5)])
     test_cases.extend([("gendisk.bin", 100, 20),("gendisk.bin", 1000, 20),("gendisk.bin", 10000, 20),("gendisk.bin", 100000, 10),("gendisk.bin", 1000000, 5),("gendisk.bin", 2000000, 5),("gendisk.bin", 4000000, 5),("gendisk.bin", 10000000, 5)])
     results = [] # Table of results containing: implementation_name, test_generator, seed, n, compute_time
@@ -66,6 +66,9 @@ def main():
 
     # Chan variants
     # implementations = ["chan_plain", "chan_idea12", "chan_idea3", "chan_refined", "qh_rec", "merge_hull_reduce_copy", "merge_hull_chan_trick", "impl1"]
+
+    # Test of Ouellets algorithm
+    # implementations = ["chan_plain", "chan_refined", "qh_rec", "merge_hull_reduce_copy", "impl1", "ouellet"]
 
     run_implementations(implementations)
     if len(sys.argv)>1 and sys.argv[1] == "plot":
