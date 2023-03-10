@@ -16,10 +16,8 @@
 static bool readBinary;
 static bool outputPoints;
 
-static std::optional<SolveSliceParallelArgs> solveSliceParallelArgs;
-
 template <typename T>
-void readRunAndOutput(uint64_t numPoints, std::function<void(std::vector<point<T>>&)> run) {
+void readRunAndOutput(uint64_t numPoints, std::function<std::chrono::high_resolution_clock::duration(std::vector<point<T>>&)> run) {
 	auto beforeTime = std::chrono::high_resolution_clock::now();
 	
 	std::vector<pointd> pointsd(numPoints);
@@ -53,14 +51,7 @@ void readRunAndOutput(uint64_t numPoints, std::function<void(std::vector<point<T
 		}
 	}
 	
-	if (solveSliceParallelArgs) {
-		run = [innerSolve=run] (std::vector<point<T>>& p) {
-			solveSliceParallel<T>(p, innerSolve, *solveSliceParallelArgs);
-		};
-	}
-	
-	auto startTime = std::chrono::high_resolution_clock::now();
-	run(*points);
+	auto computeTime = run(*points);
 	auto endTime = std::chrono::high_resolution_clock::now();
 	
 	std::cout << "on hull: " << points->size() << "\n";
@@ -76,17 +67,70 @@ void readRunAndOutput(uint64_t numPoints, std::function<void(std::vector<point<T
 	}
 	
 	std::cerr << "elapsed time: " << std::chrono::duration<double, std::milli>(endTime - beforeTime).count() << "ms\n";
-	std::cerr << "compute time: " << std::chrono::duration<double, std::milli>(endTime - startTime).count() << "ms\n";
+	std::cerr << "compute time: " << std::chrono::duration<double, std::milli>(computeTime).count() << "ms\n";
+}
+
+template <typename T>
+void readRunAndOutputSOA(size_t numPoints, HullSolveFunctionSOA<T> run, size_t soaAlignment) {
+	readRunAndOutput<T>(numPoints, [&] (std::vector<point<T>>& points) {
+		size_t alignment = std::max<size_t>(soaAlignment, 4);
+		size_t numPointsRoundedUp = (points.size() + alignment) & ~(alignment - 1);
+		size_t pointsBytes = numPointsRoundedUp * sizeof(T);
+		char* pointsMemory = static_cast<char*>(std::aligned_alloc(alignment, pointsBytes * 2));
+		T* pointsSoaX = reinterpret_cast<T*>(pointsMemory);
+		T* pointsSoaY = reinterpret_cast<T*>(pointsMemory + pointsBytes);
+		
+		for (size_t i = 0; i < points.size(); i++) {
+			pointsSoaX[i] = points[i].x;
+			pointsSoaY[i] = points[i].y;
+		}
+		for (size_t i = points.size(); i < numPointsRoundedUp; i++) {
+			pointsSoaX[i] = point<T>::notOnHull.x;
+			pointsSoaY[i] = point<T>::notOnHull.y;
+		}
+		
+		auto startTime = std::chrono::high_resolution_clock::now();
+		size_t numHullPoints = run(SOAPoints<T> {
+			.x = { pointsSoaX, points.size() },
+			.y = { pointsSoaY, points.size() }
+		});
+		auto computeTime = std::chrono::high_resolution_clock::now() - startTime;
+		
+		points.clear();
+		for (size_t i = 0; i < numHullPoints; i++) {
+			points.emplace_back(pointsSoaX[i], pointsSoaY[i]);
+		}
+		
+		std::free(pointsMemory);
+		
+		return computeTime;
+	});
+}
+
+template <typename T>
+void readRunAndOutputAOS(size_t numPoints, HullSolveFunction<T> run, std::optional<SolveSliceParallelArgs> solveSliceParallelArgs) {
+	if (solveSliceParallelArgs) {
+		run = [innerSolve=run, solveSliceParallelArgs] (std::vector<point<T>>& p) {
+			solveSliceParallel<T>(p, innerSolve, *solveSliceParallelArgs);
+		};
+	}
+	
+	readRunAndOutput<T>(numPoints, [&] (std::vector<point<T>>& points) {
+		auto startTime = std::chrono::high_resolution_clock::now();
+		run(points);
+		return std::chrono::high_resolution_clock::now() - startTime;
+	});
 }
 
 [[noreturn]] void printImplementationNamesAndExit() {
 	std::cout << "Available implementations:\n";
 	for (const HullImpl& impl : *hullImplementations) {
 		std::cout << " - " << impl.name << " (";
-		if (impl.runInt)
+		bool hasIntVersion = impl.runInt || impl.runIntSoa;
+		if (hasIntVersion)
 			std::cout << "int";
-		if (impl.runDouble) {
-			if (impl.runInt)
+		if (impl.runDouble || impl.runDoubleSoa) {
+			if (hasIntVersion)
 				std::cout << ", ";
 			std::cout << "double";
 		}
@@ -105,6 +149,7 @@ int main(int argv, char** argc) {
 	bool useIntVersion = false;
 	outputPoints = true;
 	std::string_view implName;
+	std::optional<SolveSliceParallelArgs> solveSliceParallelArgs;
 	for (int i = 1; i < argv; i++) {
 		std::string_view arg = argc[i];
 		if (arg == "-i") {
@@ -142,7 +187,7 @@ int main(int argv, char** argc) {
 		std::cout << "Implementation not found: " << implName;
 		printImplementationNamesAndExit();
 	}
-	if (useIntVersion && !implIterator->runInt) {
+	if (useIntVersion && !implIterator->runInt && !implIterator->runIntSoa) {
 		std::cout << "Integer implementation not available for " << implName << "\n";
 		return 1;
 	}
@@ -163,10 +208,19 @@ int main(int argv, char** argc) {
 		return 1;
 	}
 	
+	std::cin.precision(15);
+	
 	if (useIntVersion) {
-		readRunAndOutput<int64_t>(numPoints, implIterator->runInt);
+		if (implIterator->runIntSoa) {
+			readRunAndOutputSOA<int64_t>(numPoints, implIterator->runIntSoa, implIterator->soaAlignment);
+		} else {
+			readRunAndOutputAOS<int64_t>(numPoints, implIterator->runInt, solveSliceParallelArgs);
+		}
 	} else {
-		std::cin.precision(15);
-		readRunAndOutput<double>(numPoints, implIterator->runDouble);
+		if (implIterator->runDoubleSoa) {
+			readRunAndOutputSOA<double>(numPoints, implIterator->runDoubleSoa, implIterator->soaAlignment);
+		} else {
+			readRunAndOutputAOS<double>(numPoints, implIterator->runDouble, solveSliceParallelArgs);
+		}
 	}
 }

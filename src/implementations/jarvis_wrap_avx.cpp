@@ -1,4 +1,3 @@
-#include "../hull_impl.hpp"
 #include "../point.hpp"
 #include "simd_utils.hpp"
 
@@ -6,7 +5,7 @@
 #include <vector>
 #include <cmath>
 
-int findMinPoint(__m256d* ptsx, __m256d* ptsy, uint32_t vcount) {
+static int findMinPoint(__m256d* ptsx, __m256d* ptsy, uint32_t vcount) {
 	__m256d minX = _mm256_set1_pd(INFINITY);
 	__m256d minY = _mm256_set1_pd(INFINITY);
 	__m128i minIndices = _mm_set1_epi32(0);
@@ -39,7 +38,7 @@ int findMinPoint(__m256d* ptsx, __m256d* ptsy, uint32_t vcount) {
 	return std::get<2>(minPoint);
 }
 
-static void runJarvisWrapAvx(std::vector<pointd>& pts) {
+void runJarvisWrapAvx(std::vector<pointd>& pts) {
 	size_t bufferSize = ((pts.size() * 2 * sizeof(double)) + 32) & ~31;
 	char* buffer = static_cast<char*>(std::aligned_alloc(32, bufferSize * 2));
 	
@@ -131,9 +130,3 @@ static void runJarvisWrapAvx(std::vector<pointd>& pts) {
 	
 	std::free(buffer);
 }
-
-DEF_HULL_IMPL({
-	.name = "jarvis_wrap_avx",
-	.runInt = nullptr,
-	.runDouble = &runJarvisWrapAvx,
-});

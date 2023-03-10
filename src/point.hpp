@@ -13,6 +13,15 @@ enum class side {
 };
 
 template <typename T>
+bool isNotOnHull(T x) {
+	if constexpr (std::numeric_limits<T>::has_quiet_NaN) {
+		return std::isnan(x);
+	} else {
+		return x == std::numeric_limits<T>::max();
+	}
+}
+
+template <typename T>
 struct point {
 	T x, y;
 	
@@ -47,11 +56,7 @@ struct point {
 	static const point<T> notOnHull;
 	
 	bool isNotOnHull() const {
-		if constexpr (std::numeric_limits<T>::has_quiet_NaN) {
-			return std::isnan(x);
-		} else {
-			return x == std::numeric_limits<T>::max();
-		}
+		return ::isNotOnHull(x);
 	}
 };
 using pointi = point<int64_t>;

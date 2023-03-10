@@ -1,4 +1,3 @@
-#include "../hull_impl.hpp"
 #include "../point.hpp"
 #include "simd_utils.hpp"
 
@@ -37,7 +36,7 @@ struct points {
 	}
 };
 
-size_t partitionByLine(const points& ptsIn, points& ptsOut, pointd lineStart, pointd lineEnd) {
+static size_t partitionByLine(const points& ptsIn, points& ptsOut, pointd lineStart, pointd lineEnd) {
 	assert(ptsOut.count >= ptsIn.count);
 	ptsOut.count = ptsIn.count;
 	
@@ -90,7 +89,7 @@ size_t partitionByLine(const points& ptsIn, points& ptsOut, pointd lineStart, po
 	return numRight;
 }
 
-int findMaxPointIndex(const points& pts, pointd offsetPoint, pointd normal) {
+static int findMaxPointIndex(const points& pts, pointd offsetPoint, pointd normal) {
 	const auto normalX8 = _mm512_set1_pd(normal.x);
 	const auto normalY8 = _mm512_set1_pd(normal.y);
 	const auto offsetX8 = _mm512_set1_pd(offsetPoint.x);
@@ -129,7 +128,7 @@ int findMaxPointIndex(const points& pts, pointd offsetPoint, pointd normal) {
 	return maxPoint.second;
 }
 
-void quickhullAvxRec(
+static void quickhullAvxRec(
 	points pts, points tmppts, pointd leftHullPoint, pointd rightHullPoint, std::vector<pointd>& output, int depth = 1
 ) {
 	if (pts.count <= 1) {
@@ -173,7 +172,7 @@ void quickhullAvxRec(
 	quickhullAvxRec({ pts.x, pts.y, numPointsLeft }, tmppts, leftHullPoint, maxPoint, output, depth + 1);
 }
 
-std::pair<int, int> findMinMax(const points& pts) {
+static std::pair<int, int> findMinMax(const points& pts) {
 	auto maxX = _mm512_set1_pd(-INFINITY);
 	auto maxY = _mm512_set1_pd(-INFINITY);
 	auto maxIndices = _mm256_set1_epi32(0);
@@ -225,7 +224,7 @@ std::pair<int, int> findMinMax(const points& pts) {
 	return { std::get<2>(minPoint), std::get<2>(maxPoint) };
 }
 
-void runQuickhullAvx(std::vector<pointd>& pts) {
+void runQuickhullAvx512(std::vector<pointd>& pts) {
 	size_t bufferSize = ((pts.size() * 2 * sizeof(double)) + 128) & ~63;
 	char* buffer = static_cast<char*>(std::aligned_alloc(64, bufferSize * 4));
 	
@@ -273,8 +272,4 @@ void runQuickhullAvx(std::vector<pointd>& pts) {
 	std::free(buffer);
 }
 
-DEF_HULL_IMPL({
-	.name = "qh_avx512",
-	.runInt = nullptr,
-	.runDouble = runQuickhullAvx,
-});
+

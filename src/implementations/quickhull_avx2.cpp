@@ -1,4 +1,3 @@
-#include "../hull_impl.hpp"
 #include "../point.hpp"
 #include "simd_utils.hpp"
 
@@ -12,8 +11,6 @@
 #include <list>
 #include <mutex>
 #include <cassert>
-
-namespace avx2 {
 
 struct points {
 	__m256d* x;
@@ -81,14 +78,14 @@ struct points {
 	}
 };
 
-__m256d bitmapToVecmask(int m) {
+static __m256d bitmapToVecmask(int m) {
 	static const __m256i vshift_count = _mm256_set_epi64x(60, 61, 62, 63);
 	__m256i bcast = _mm256_set1_epi64x(m);
 	return _mm256_castsi256_pd(_mm256_sllv_epi64(bcast, vshift_count));
 }
 
 template <bool KeepLeft>
-size_t partitionByLine(points pts, pointd lineStart, pointd lineEnd) {
+static size_t partitionByLine(points pts, pointd lineStart, pointd lineEnd) {
 	const auto lineStartX4 = _mm256_set1_pd(lineStart.x);
 	const auto lineStartY4 = _mm256_set1_pd(lineStart.y);
 	const auto lineDeltaX4 = _mm256_set1_pd(lineEnd.x - lineStart.x);
@@ -122,7 +119,7 @@ size_t partitionByLine(points pts, pointd lineStart, pointd lineEnd) {
 	return numRight;
 }
 
-int findMaxPointIndex(points pts, pointd offsetPoint, pointd normal) {
+static int findMaxPointIndex(points pts, pointd offsetPoint, pointd normal) {
 	const auto normalX4 = _mm256_set1_pd(normal.x);
 	const auto normalY4 = _mm256_set1_pd(normal.y);
 	const auto offsetX4 = _mm256_set1_pd(offsetPoint.x);
@@ -157,7 +154,7 @@ int findMaxPointIndex(points pts, pointd offsetPoint, pointd normal) {
 	return (int)maxPoint.second - (int)pts.skipFirst;
 }
 
-void quickhullAvxRec(points pts, pointd leftHullPoint, pointd rightHullPoint, std::vector<pointd>& output, bool isUpperHull) {
+static void quickhullAvxRec(points pts, pointd leftHullPoint, pointd rightHullPoint, std::vector<pointd>& output, bool isUpperHull) {
 	if (pts.count() <= 1) {
 		if (pts.count() == 1) {
 			output.push_back(pts.at(0));
@@ -200,7 +197,7 @@ void quickhullAvxRec(points pts, pointd leftHullPoint, pointd rightHullPoint, st
 	quickhullAvxRec(pointsL.subspan(0, numL), leftHullPoint, maxPoint, output, isUpperHull);
 }
 
-std::pair<int, int> findMinMax(__m256d* ptsx, __m256d* ptsy, size_t vecCount) {
+static std::pair<int, int> findMinMax(__m256d* ptsx, __m256d* ptsy, size_t vecCount) {
 	__m256d maxX = _mm256_set1_pd(-INFINITY);
 	__m256d maxY = _mm256_set1_pd(-INFINITY);
 	__m128i maxIndices = _mm_set1_epi32(0);
@@ -246,7 +243,7 @@ std::pair<int, int> findMinMax(__m256d* ptsx, __m256d* ptsy, size_t vecCount) {
 	return { std::get<2>(minPoint), std::get<2>(maxPoint) };
 }
 
-void runQuickhullAvx(std::vector<pointd>& pts) {
+void runQuickhullAvx2(std::vector<pointd>& pts) {
 	size_t bufferSize = ((pts.size() * 2 * sizeof(double)) + 128) & ~31;
 	char* buffer = static_cast<char*>(std::aligned_alloc(32, bufferSize * 2));
 	
@@ -291,11 +288,4 @@ void runQuickhullAvx(std::vector<pointd>& pts) {
 	quickhullAvxRec(pointsSpan.subspan(numPointsBelow, numPoints - numPointsBelow), leftmostPt, rightmostPt, pts, true);
 	
 	std::free(buffer);
-}
-
-DEF_HULL_IMPL({
-	.name = "qh_avx",
-	.runInt = nullptr,
-	.runDouble = runQuickhullAvx,
-});
 }

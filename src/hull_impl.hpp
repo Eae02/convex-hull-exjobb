@@ -6,14 +6,21 @@
 #include <optional>
 
 #include "point.hpp"
+#include "soa_points.hpp"
 
 template <typename T>
 using HullSolveFunction = std::function<void(std::vector<point<T>>&)>;
+
+template <typename T>
+using HullSolveFunctionSOA = std::function<size_t(SOAPoints<T>)>;
 
 struct HullImpl {
 	std::string_view name;
 	HullSolveFunction<int64_t> runInt;
 	HullSolveFunction<double> runDouble;
+	HullSolveFunctionSOA<int64_t> runIntSoa;
+	HullSolveFunctionSOA<double> runDoubleSoa;
+	size_t soaAlignment;
 };
 
 extern std::vector<HullImpl>* hullImplementations;

@@ -36,6 +36,7 @@ target_compile_options(ch PRIVATE
 	-Wvla
 	-Wstrict-aliasing
 	-Wwrite-strings
+	-Wno-missing-field-initializers
 	-pedantic
 	$<$<COMPILE_LANGUAGE:CXX>:-Wconversion-null>
 	$<$<CONFIG:Debug>:-fsanitize=address,undefined>

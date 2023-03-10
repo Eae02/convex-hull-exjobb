@@ -124,6 +124,9 @@ void runQuickhull(std::vector<point<T>>& pts, bool parallel) {
 	pts.erase(std::remove_if(pts.begin(), pts.end(), [&] (const point<T>& p) { return p.isNotOnHull(); }), pts.end());
 }
 
+void runQuickhullAvx2(std::vector<pointd>& pts);
+void runQuickhullAvx512(std::vector<pointd>& pts);
+
 DEF_HULL_IMPL({
 	.name = "qh_rec",
 	.runInt = std::bind(runQuickhull<int64_t>, std::placeholders::_1, false),
@@ -134,4 +137,16 @@ DEF_HULL_IMPL({
 	.name = "qh_recpar",
 	.runInt = std::bind(runQuickhull<int64_t>, std::placeholders::_1, true),
 	.runDouble = std::bind(runQuickhull<double>, std::placeholders::_1, true),
+});
+
+DEF_HULL_IMPL({
+	.name = "qh_avx",
+	.runInt = nullptr,
+	.runDouble = runQuickhullAvx2,
+});
+
+DEF_HULL_IMPL({
+	.name = "qh_avx512",
+	.runInt = nullptr,
+	.runDouble = runQuickhullAvx512,
 });
