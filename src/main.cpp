@@ -1,5 +1,7 @@
 #include "hull_impl.hpp"
 #include "slice_parallel.hpp"
+#include "pcm.hpp"
+#include "perf_data.hpp"
 
 #include <iostream>
 #include <algorithm>
@@ -17,7 +19,7 @@ static bool readBinary;
 static bool outputPoints;
 
 template <typename T>
-void readRunAndOutput(uint64_t numPoints, std::function<std::chrono::high_resolution_clock::duration(std::vector<point<T>>&)> run) {
+void readRunAndOutput(uint64_t numPoints, std::function<void(std::vector<point<T>>&)> run) {
 	auto beforeTime = std::chrono::high_resolution_clock::now();
 	
 	std::vector<pointd> pointsd(numPoints);
@@ -51,7 +53,7 @@ void readRunAndOutput(uint64_t numPoints, std::function<std::chrono::high_resolu
 		}
 	}
 	
-	auto computeTime = run(*points);
+	run(*points);
 	auto endTime = std::chrono::high_resolution_clock::now();
 	
 	std::cout << "on hull: " << points->size() << "\n";
@@ -67,11 +69,10 @@ void readRunAndOutput(uint64_t numPoints, std::function<std::chrono::high_resolu
 	}
 	
 	std::cerr << "elapsed time: " << std::chrono::duration<double, std::milli>(endTime - beforeTime).count() << "ms\n";
-	std::cerr << "compute time: " << std::chrono::duration<double, std::milli>(computeTime).count() << "ms\n";
 }
 
 template <typename T>
-void readRunAndOutputSOA(size_t numPoints, HullSolveFunctionSOA<T> run, size_t soaAlignment) {
+void readRunAndOutputSOA(size_t numPoints, PerfData& perfData, HullSolveFunctionSOA<T> run, size_t soaAlignment) {
 	readRunAndOutput<T>(numPoints, [&] (std::vector<point<T>>& points) {
 		size_t alignment = std::max<size_t>(soaAlignment, 4);
 		size_t numPointsRoundedUp = (points.size() + alignment) & ~(alignment - 1);
@@ -89,12 +90,12 @@ void readRunAndOutputSOA(size_t numPoints, HullSolveFunctionSOA<T> run, size_t s
 			pointsSoaY[i] = point<T>::notOnHull.y;
 		}
 		
-		auto startTime = std::chrono::high_resolution_clock::now();
+		perfData.begin();
 		size_t numHullPoints = run(SOAPoints<T> {
 			.x = { pointsSoaX, points.size() },
 			.y = { pointsSoaY, points.size() }
 		});
-		auto computeTime = std::chrono::high_resolution_clock::now() - startTime;
+		perfData.end();
 		
 		points.clear();
 		for (size_t i = 0; i < numHullPoints; i++) {
@@ -102,13 +103,11 @@ void readRunAndOutputSOA(size_t numPoints, HullSolveFunctionSOA<T> run, size_t s
 		}
 		
 		std::free(pointsMemory);
-		
-		return computeTime;
 	});
 }
 
 template <typename T>
-void readRunAndOutputAOS(size_t numPoints, HullSolveFunction<T> run, std::optional<SolveSliceParallelArgs> solveSliceParallelArgs) {
+void readRunAndOutputAOS(size_t numPoints, PerfData& perfData, HullSolveFunction<T> run, std::optional<SolveSliceParallelArgs> solveSliceParallelArgs) {
 	if (solveSliceParallelArgs) {
 		run = [innerSolve=run, solveSliceParallelArgs] (std::vector<point<T>>& p) {
 			solveSliceParallel<T>(p, innerSolve, *solveSliceParallelArgs);
@@ -116,9 +115,9 @@ void readRunAndOutputAOS(size_t numPoints, HullSolveFunction<T> run, std::option
 	}
 	
 	readRunAndOutput<T>(numPoints, [&] (std::vector<point<T>>& points) {
-		auto startTime = std::chrono::high_resolution_clock::now();
+		perfData.begin();
 		run(points);
-		return std::chrono::high_resolution_clock::now() - startTime;
+		perfData.end();
 	});
 }
 
@@ -147,6 +146,7 @@ int main(int argv, char** argc) {
 	          [] (const auto& a, const auto& b) { return a.name < b.name; });
 	
 	bool useIntVersion = false;
+	bool usePcm = false;
 	outputPoints = true;
 	std::string_view implName;
 	std::optional<SolveSliceParallelArgs> solveSliceParallelArgs;
@@ -154,6 +154,8 @@ int main(int argv, char** argc) {
 		std::string_view arg = argc[i];
 		if (arg == "-i") {
 			useIntVersion = true;
+		} else if (arg == "-pcm") {
+			usePcm = true;
 		} else if (arg == "-q") {
 			outputPoints = false;
 		} else if (arg.starts_with("-sp")) {
@@ -210,17 +212,25 @@ int main(int argv, char** argc) {
 	
 	std::cin.precision(15);
 	
+	std::unique_ptr<PerfData> perfData;
+	if (usePcm)
+		perfData = createPCMPerfData();
+	if (perfData == nullptr)
+		perfData = std::make_unique<PerfData>();
+	
 	if (useIntVersion) {
 		if (implIterator->runIntSoa) {
-			readRunAndOutputSOA<int64_t>(numPoints, implIterator->runIntSoa, implIterator->soaAlignment);
+			readRunAndOutputSOA<int64_t>(numPoints, *perfData, implIterator->runIntSoa, implIterator->soaAlignment);
 		} else {
-			readRunAndOutputAOS<int64_t>(numPoints, implIterator->runInt, solveSliceParallelArgs);
+			readRunAndOutputAOS<int64_t>(numPoints, *perfData, implIterator->runInt, solveSliceParallelArgs);
 		}
 	} else {
 		if (implIterator->runDoubleSoa) {
-			readRunAndOutputSOA<double>(numPoints, implIterator->runDoubleSoa, implIterator->soaAlignment);
+			readRunAndOutputSOA<double>(numPoints, *perfData, implIterator->runDoubleSoa, implIterator->soaAlignment);
 		} else {
-			readRunAndOutputAOS<double>(numPoints, implIterator->runDouble, solveSliceParallelArgs);
+			readRunAndOutputAOS<double>(numPoints, *perfData, implIterator->runDouble, solveSliceParallelArgs);
 		}
 	}
+	
+	perfData->printStatistics();
 }

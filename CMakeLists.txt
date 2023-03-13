@@ -9,6 +9,11 @@ else()
 	message(WARNING "cgal not found, cgal implementations will not be compiled")
 endif()
 
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/libs/pcm/CMakeLists.txt")
+	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libs/pcm)
+	set(HAS_PCM TRUE)
+endif()
+
 file(GLOB_RECURSE SOURCE_FILES src/*.cpp)
 
 if (NO_AVX)
@@ -52,9 +57,15 @@ if (${HAS_CGAL})
 	target_compile_definitions(ch PRIVATE HAS_CGAL)
 endif()
 
+if (${HAS_PCM})
+	target_link_libraries(ch PRIVATE PCM_STATIC_SILENT)
+	target_include_directories(ch PRIVATE SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/libs/pcm/src)
+	target_compile_definitions(ch PRIVATE HAS_PCM)
+endif()
+
 if (TBB_PATH)
 	target_link_libraries(ch PRIVATE ${TBB_PATH}/gnu_7.5_cxx11_64_relwithdebinfo/libtbb.so)
-	target_include_directories(ch PRIVATE ${TBB_PATH}/include)
+	target_include_directories(ch PRIVATE SYSTEM ${TBB_PATH}/include)
 	target_compile_definitions(ch PRIVATE HAS_TBB)
 else()
 	find_package(TBB)

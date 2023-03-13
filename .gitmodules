@@ -2,3 +2,6 @@
 	path = libs/cgal
 	url = https://github.com/CGAL/cgal.git
 	shallow = true
+[submodule "libs/pcm"]
+	path = libs/pcm
+	url = https://github.com/intel/pcm.git
