@@ -47,6 +47,10 @@ target_compile_options(ch PRIVATE
 	$<$<CONFIG:Debug>:-fsanitize=address,undefined>
 )
 
+if (NO_AVX)
+	target_compile_definitions(ch PRIVATE NO_AVX)
+endif()
+
 find_package(Boost REQUIRED)
 find_package(Threads REQUIRED)
 target_link_libraries(ch PRIVATE Boost::boost Threads::Threads)

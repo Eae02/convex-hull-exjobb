@@ -61,20 +61,9 @@ size_t runJarvisWrapSOA(SOAPoints<T> pts) {
 	return numHullPts;
 }
 
+#ifndef NO_AVX
 void runJarvisWrapAvx(std::vector<pointd>& pts);
 void runJarvisWrapAvx512(std::vector<pointd>& pts);
-
-DEF_HULL_IMPL({
-	.name = "jarvis_wrap",
-	.runInt = &runJarvisWrap<int64_t>,
-	.runDouble = &runJarvisWrap<double>,
-});
-
-DEF_HULL_IMPL({
-	.name = "jarvis_wrap_soa",
-	.runIntSoa = &runJarvisWrapSOA<int64_t>,
-	.runDoubleSoa = &runJarvisWrapSOA<double>,
-});
 
 DEF_HULL_IMPL({
 	.name = "jarvis_wrap_avx",
@@ -86,4 +75,17 @@ DEF_HULL_IMPL({
 	.name = "jarvis_wrap_avx512",
 	.runInt = nullptr,
 	.runDouble = &runJarvisWrapAvx512,
+});
+#endif
+
+DEF_HULL_IMPL({
+	.name = "jarvis_wrap",
+	.runInt = &runJarvisWrap<int64_t>,
+	.runDouble = &runJarvisWrap<double>,
+});
+
+DEF_HULL_IMPL({
+	.name = "jarvis_wrap_soa",
+	.runIntSoa = &runJarvisWrapSOA<int64_t>,
+	.runDoubleSoa = &runJarvisWrapSOA<double>,
 });

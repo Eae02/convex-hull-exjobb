@@ -124,8 +124,22 @@ void runQuickhull(std::vector<point<T>>& pts, bool parallel) {
 	pts.erase(std::remove_if(pts.begin(), pts.end(), [&] (const point<T>& p) { return p.isNotOnHull(); }), pts.end());
 }
 
+#ifndef NO_AVX
 void runQuickhullAvx2(std::vector<pointd>& pts);
 void runQuickhullAvx512(std::vector<pointd>& pts);
+
+DEF_HULL_IMPL({
+	.name = "qh_avx",
+	.runInt = nullptr,
+	.runDouble = runQuickhullAvx2,
+});
+
+DEF_HULL_IMPL({
+	.name = "qh_avx512",
+	.runInt = nullptr,
+	.runDouble = runQuickhullAvx512,
+});
+#endif
 
 DEF_HULL_IMPL({
 	.name = "qh_rec",
@@ -139,14 +153,3 @@ DEF_HULL_IMPL({
 	.runDouble = std::bind(runQuickhull<double>, std::placeholders::_1, true),
 });
 
-DEF_HULL_IMPL({
-	.name = "qh_avx",
-	.runInt = nullptr,
-	.runDouble = runQuickhullAvx2,
-});
-
-DEF_HULL_IMPL({
-	.name = "qh_avx512",
-	.runInt = nullptr,
-	.runDouble = runQuickhullAvx512,
-});
