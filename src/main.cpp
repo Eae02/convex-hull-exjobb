@@ -74,7 +74,7 @@ void readRunAndOutput(uint64_t numPoints, std::function<void(std::vector<point<T
 template <typename T>
 void readRunAndOutputSOA(size_t numPoints, PerfData& perfData, HullSolveFunctionSOA<T> run, size_t soaAlignment) {
 	readRunAndOutput<T>(numPoints, [&] (std::vector<point<T>>& points) {
-		size_t alignment = std::max<size_t>(soaAlignment, 4);
+		size_t alignment = std::max<size_t>(soaAlignment, alignof(std::max_align_t));
 		size_t numPointsRoundedUp = (points.size() + alignment) & ~(alignment - 1);
 		size_t pointsBytes = numPointsRoundedUp * sizeof(T);
 		char* pointsMemory = static_cast<char*>(std::aligned_alloc(alignment, pointsBytes * 2));
