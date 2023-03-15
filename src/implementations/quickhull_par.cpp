@@ -5,9 +5,20 @@
 #include <vector>
 #include <span>
 #include <cmath>
+#include <thread>
+#include <list>
+#include <mutex>
+
+struct ParallelData {
+	std::mutex lock;
+	std::list<std::thread> threads;
+};
 
 template <typename T>
-static void quickhullRec(std::span<point<T>> pts, point<T> leftHullPoint, point<T> rightHullPoint, bool upperHull) {
+void quickhullRecPar(
+	std::span<point<T>> pts, point<T> leftHullPoint, point<T> rightHullPoint,
+	int remParallelDepth, ParallelData& pdata, bool upperHull
+) {
 	if (pts.empty())
 		return;
 	
@@ -54,15 +65,26 @@ static void quickhullRec(std::span<point<T>> pts, point<T> leftHullPoint, point<
 	size_t numPointsRight = rightPointsEndIt - pts.begin();
 	size_t numPointsValidRight = rightPointsValidEndIt - pts.begin();
 	size_t numPointsLeft = (leftPointsEndIt - rightPointsEndIt) - 1;
-
+    
 	std::fill(leftPointsEndIt, pts.end(), point<T>::notOnHull);
 
-	quickhullRec<T>(pts.subspan(0, numPointsValidRight), maxPoint, rightHullPoint, upperHull);
-	quickhullRec<T>(pts.subspan(numPointsRight + 1, numPointsLeft), leftHullPoint, maxPoint, upperHull);
+	auto rightSubspan = pts.subspan(0, numPointsValidRight);
+	if (remParallelDepth > 0) {
+		pdata.lock.lock();
+		auto pdataPtr = &pdata;
+		pdata.threads.emplace_back([=] {
+			quickhullRecPar<T>(rightSubspan, maxPoint, rightHullPoint, remParallelDepth - 1, *pdataPtr, upperHull);
+		});
+		pdata.lock.unlock();
+	} else {
+		quickhullRecPar<T>(rightSubspan, maxPoint, rightHullPoint, remParallelDepth - 1, pdata, upperHull);
+	}
+	
+	quickhullRecPar<T>(pts.subspan(numPointsRight + 1, numPointsLeft), leftHullPoint, maxPoint, remParallelDepth - 1, pdata, upperHull);
 }
 
 template <typename T>
-void runQuickhull(std::vector<point<T>>& pts) {
+void runQuickhullPar(std::vector<point<T>>& pts) {
 	size_t leftmost = std::min_element(pts.begin(), pts.end()) - pts.begin();
 	point<T> leftmostPt = pts[leftmost];
 	std::swap(pts.front(), pts[leftmost]);
@@ -77,31 +99,29 @@ void runQuickhull(std::vector<point<T>>& pts) {
 	
 	std::swap(pts.back(), *belowPointsEndIt);
 	
-	quickhullRec<T>(std::span<point<T>>(&pts[1], &*belowPointsEndIt), rightmostPt, leftmostPt, false);
-	quickhullRec<T>(std::span<point<T>>(&*belowPointsEndIt + 1, pts.data() + pts.size()), leftmostPt, rightmostPt, true);
+	ParallelData pdata;
+	int remParallelDepth = 0;
+	
+	while ((1 << remParallelDepth) <= static_cast<int>(std::thread::hardware_concurrency()))
+		remParallelDepth++;
+	
+	quickhullRecPar<T>(std::span<point<T>>(&pts[1], &*belowPointsEndIt), rightmostPt, leftmostPt, remParallelDepth, pdata, false);
+	quickhullRecPar<T>(std::span<point<T>>(&*belowPointsEndIt + 1, pts.data() + pts.size()), leftmostPt, rightmostPt, remParallelDepth, pdata, true);
+	
+	while (true) {
+		std::unique_lock<std::mutex> lg(pdata.lock);
+		if (pdata.threads.empty()) break;
+		auto thread = std::move(pdata.threads.back());
+		pdata.threads.pop_back();
+		lg.unlock();
+		thread.join();
+	}
 	
 	pts.erase(std::remove_if(pts.begin(), pts.end(), [&] (const point<T>& p) { return p.isNotOnHull(); }), pts.end());
 }
 
-#ifndef NO_AVX
-void runQuickhullAvx2(std::vector<pointd>& pts);
-void runQuickhullAvx512(std::vector<pointd>& pts);
-
 DEF_HULL_IMPL({
-	.name = "qh_avx",
-	.runInt = nullptr,
-	.runDouble = runQuickhullAvx2,
-});
-
-DEF_HULL_IMPL({
-	.name = "qh_avx512",
-	.runInt = nullptr,
-	.runDouble = runQuickhullAvx512,
-});
-#endif
-
-DEF_HULL_IMPL({
-	.name = "qh_rec",
-	.runInt = runQuickhull<int64_t>,
-	.runDouble = runQuickhull<double>,
+	.name = "qh_recpar",
+	.runInt = runQuickhullPar<int64_t>,
+	.runDouble = runQuickhullPar<double>,
 });
