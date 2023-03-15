@@ -13,4 +13,4 @@ for s in range(1, 30, 2):
 
 fig, ax = plt.subplots(figsize=(16,12))
 ax.plot([m[0] for m in measurements], [m[1] for m in measurements], linewidth=2.0)
-plt.show()
+plt.savefig('results/qh_hybrid_plot')
