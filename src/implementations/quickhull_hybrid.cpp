@@ -43,6 +43,20 @@ static void hybridJarvisWrap(std::span<point<T>> pts, point<T> leftHullPoint, po
 }
 
 template <typename T>
+void quickhullRecESX(std::span<point<T>> pts, point<T> leftHullPoint, point<T> rightHullPoint);
+
+template <typename T>
+static void hybridQuickhullESX(std::span<point<T>> pts, point<T> leftHullPoint, point<T> rightHullPoint) {
+	if (leftHullPoint.x < rightHullPoint.x) {
+		std::sort(pts.begin(), pts.end(), [] (const auto& a, const auto& b) { return a.x > b.x; });
+	} else {
+		std::sort(pts.begin(), pts.end(), [] (const auto& a, const auto& b) { return a.x < b.x; });
+	}
+	
+	quickhullRecESX(pts, leftHullPoint, rightHullPoint);
+}
+
+template <typename T>
 struct HybridData {
 	size_t changeThresholdPoints = 0;
 	size_t changeThresholdDepth = SIZE_MAX;
@@ -154,4 +168,10 @@ DEF_HULL_IMPL({
 	.name = "qh_hybrid_jw",
 	.runInt = std::bind(runQuickhullHybrid<int64_t>, std::placeholders::_1, &hybridJarvisWrap<int64_t>),
 	.runDouble = std::bind(runQuickhullHybrid<double>, std::placeholders::_1, &hybridJarvisWrap<double>),
+});
+
+DEF_HULL_IMPL({
+	.name = "qh_hybrid_esx",
+	.runInt = std::bind(runQuickhullHybrid<int64_t>, std::placeholders::_1, &hybridQuickhullESX<int64_t>),
+	.runDouble = std::bind(runQuickhullHybrid<double>, std::placeholders::_1, &hybridQuickhullESX<double>),
 });

@@ -7,7 +7,7 @@
 #include <cmath>
 
 template <typename T>
-static void quickhullRec(std::span<point<T>> pts, point<T> leftHullPoint, point<T> rightHullPoint) {
+void quickhullRecESX(std::span<point<T>> pts, point<T> leftHullPoint, point<T> rightHullPoint) {
 	if (pts.empty())
 		return;
 	
@@ -48,8 +48,8 @@ static void quickhullRec(std::span<point<T>> pts, point<T> leftHullPoint, point<
 	std::fill(rightPointsEndIt, pts.begin() + maxPointIdx, point<T>::notOnHull);
 	std::fill(leftPointsEndIt, pts.end(), point<T>::notOnHull);
 
-	quickhullRec<T>(pts.subspan(0, numPointsRight), maxPoint, rightHullPoint);
-	quickhullRec<T>(pts.subspan(maxPointIdx + 1, numPointsLeft), leftHullPoint, maxPoint);
+	quickhullRecESX<T>(pts.subspan(0, numPointsRight), maxPoint, rightHullPoint);
+	quickhullRecESX<T>(pts.subspan(maxPointIdx + 1, numPointsLeft), leftHullPoint, maxPoint);
 }
 
 template <typename T>
@@ -74,8 +74,8 @@ void runQuickhullEarlySortX(std::vector<point<T>>& pts) {
 	sort(belowSpan.begin(), belowSpan.end(), [] (const auto& a, const auto& b) { return a.x < b.x; });
 	sort(aboveSpan.begin(), aboveSpan.end(), [] (const auto& a, const auto& b) { return a.x > b.x; });
 	
-	quickhullRec<T>(belowSpan, rightmostPt, leftmostPt);
-	quickhullRec<T>(aboveSpan, leftmostPt, rightmostPt);
+	quickhullRecESX<T>(belowSpan, rightmostPt, leftmostPt);
+	quickhullRecESX<T>(aboveSpan, leftmostPt, rightmostPt);
 	
 	pts.erase(std::remove_if(pts.begin(), pts.end(), [&] (const point<T>& p) { return p.isNotOnHull(); }), pts.end());
 }
