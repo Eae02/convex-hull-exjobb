@@ -57,3 +57,28 @@ do
     time ./ch.bin impl1 < .testcases/circle/large/$testn.in > .testcases/circle/large/$testn.ans
 done
 echo "Large done"
+
+# unit disk tests
+echo "Creating unit disk tests"
+mkdir .testcases/disk
+mkdir .testcases/disk/small
+for testn in {1..10}
+do
+    ./testtools/gendisk.bin seed=$testn bin=$binary n=100 > .testcases/disk/small/$testn.in
+    ./ch.bin impl1 < .testcases/disk/small/$testn.in > .testcases/disk/small/$testn.ans
+done
+echo "Small done"
+mkdir .testcases/disk/medium
+for testn in {11..20}
+do
+    ./testtools/gendisk.bin seed=$testn bin=$binary n=10000 > .testcases/disk/medium/$testn.in
+    ./ch.bin impl1 < .testcases/disk/medium/$testn.in > .testcases/disk/medium/$testn.ans
+done
+echo "Medium done"
+mkdir .testcases/disk/large
+for testn in {21..30}
+do
+    ./testtools/gendisk.bin seed=$testn bin=$binary n=1000000 > .testcases/disk/large/$testn.in
+    time ./ch.bin impl1 < .testcases/disk/large/$testn.in > .testcases/disk/large/$testn.ans
+done
+echo "Large done"
