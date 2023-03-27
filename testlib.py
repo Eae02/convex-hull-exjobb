@@ -12,12 +12,15 @@ def run(inputFile, implementation, extraArgs=[]):
 			computeTime = float(line.split(":")[1][:-2])
 	return computeTime
 
-def runOnAllFiles(dataset, implementation, runs=1, datasetSize="large", extraArgs=[]):
+def runOnAllFiles(datasets, implementation, runs=1, datasetSize="large", extraArgs=[]):
+	if type(datasets) != type([]):
+		datasets = [datasets]
 	times = []
-	dirpath = f".testcases/{dataset}/{datasetSize}"
-	files = list(filter(lambda f: f.endswith(".in"), os.listdir(dirpath)))
-	for r in range(runs):
-		for file in files:
-			time = run(dirpath + "/" + file, implementation, extraArgs)
-			times.append(time)
+	for dataset in datasets:
+		dirpath = f".testcases/{dataset}/{datasetSize}"
+		files = list(filter(lambda f: f.endswith(".in"), os.listdir(dirpath)))
+		for r in range(runs):
+			for file in files:
+				time = run(dirpath + "/" + file, implementation, extraArgs)
+				times.append(time)
 	return sum(times) / len(times)

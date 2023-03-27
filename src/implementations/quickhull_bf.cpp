@@ -7,59 +7,40 @@
 #include <cmath>
 
 namespace qh_bf {
-	struct Interval_ImplicitHullPoints {
-		uint32_t lo;
-		uint32_t hi;
-		
-		Interval_ImplicitHullPoints(uint32_t _lo, uint32_t _hi)
-			: lo(_lo), hi(_hi) { }
-		Interval_ImplicitHullPoints(uint32_t _lo, uint32_t _hi, uint32_t, uint32_t)
-			: lo(_lo), hi(_hi) { }
-		
-		template <typename T>
-		std::pair<point<T>, point<T>> getHullPoints(const std::vector<point<T>>& points) const {
-			return { points[lo - 1], points[hi == points.size() ? 0 : hi] };
-		}
-	};
-	
-	struct Interval_ExplicitHullPoints {
-		uint32_t lo;
-		uint32_t hi;
-		uint32_t hullPointR;
-		uint32_t hullPointL;
-		
-		Interval_ExplicitHullPoints(uint32_t _lo, uint32_t _hi, uint32_t _hullPointR, uint32_t _hullPointL)
-			: lo(_lo), hi(_hi), hullPointR(_hullPointR), hullPointL(_hullPointL) { }
-		
-		template <typename T>
-		std::pair<point<T>, point<T>> getHullPoints(const std::vector<point<T>>& points) const {
-			return { points[hullPointR], points[hullPointL] };
-		}
-	};
-	
-	template <typename T, typename Interval>
+	template <typename T>
 	struct Data {
-		std::vector<Interval> intervals;
-		std::vector<Interval> intervalsNext;
+		std::vector<std::pair<uint32_t, uint32_t>> intervals;
+		std::vector<std::pair<uint32_t, uint32_t>> intervalsNext;
+		std::vector<std::pair<uint32_t, uint32_t>> intervalHullPoints;
+		std::vector<std::pair<uint32_t, uint32_t>> intervalHullPointsNext;
 		
 		void initialize(std::vector<point<T>>& pts);
 		
-		std::pair<size_t, point<T>> findFurthestPoint(
-			std::span<const point<T>> pts, point<T> rightHullPoint, point<T> leftHullPoint) const;
+		void compactAndRemoveNotOnHull(std::vector<point<T>>& pts);
 		
-		void addInterval(Interval interval) {
-			if (interval.hi > interval.lo)
-				intervalsNext.push_back(interval);
+		void addInterval(uint32_t lo, uint32_t hi) {
+			if (hi > lo) {
+				intervalsNext.emplace_back(lo, hi);
+			}
+		}
+		
+		void addInterval(uint32_t lo, uint32_t hi, uint32_t hullPointR, uint32_t hullPointL) {
+			if (hi > lo) {
+				intervalsNext.emplace_back(lo, hi);
+				intervalHullPointsNext.emplace_back(hullPointR, hullPointL);
+			}
 		}
 		
 		void swapIntervals() {
 			intervalsNext.swap(intervals);
 			intervalsNext.clear();
+			intervalHullPointsNext.swap(intervalHullPoints);
+			intervalHullPointsNext.clear();
 		}
 	};
 	
-	template <typename T, typename Interval>
-	void Data<T, Interval>::initialize(std::vector<point<T>>& pts) {
+	template <typename T>
+	void Data<T>::initialize(std::vector<point<T>>& pts) {
 		size_t leftmost = std::min_element(pts.begin(), pts.end()) - pts.begin();
 		point<T> leftmostPt = pts[leftmost];
 		std::swap(pts.front(), pts[leftmost]);
@@ -75,17 +56,17 @@ namespace qh_bf {
 		
 		std::swap(pts.back(), *belowPointsEndIt);
 		
-		addInterval(Interval(1, belowPointsEndIdx, 0, belowPointsEndIdx));
-		addInterval(Interval(belowPointsEndIdx + 1, pts.size(), belowPointsEndIdx, 0));
+		addInterval(1, belowPointsEndIdx);
+		addInterval(belowPointsEndIdx + 1, pts.size());
 		swapIntervals();
 	}
 	
-	template <typename T, typename Interval>
-	std::pair<size_t, point<T>> Data<T, Interval>::findFurthestPoint(
+	template <typename T>
+	std::pair<size_t, point<T>> findFurthestPoint(
 		std::span<const point<T>> pts,
 		point<T> rightHullPoint,
 		point<T> leftHullPoint
-	) const {
+	) {
 		point<T> normal = (rightHullPoint - leftHullPoint).rotated90CCW();
 		size_t maxPointIdx = 0;
 		T maxPointDot = std::numeric_limits<T>::min();
@@ -102,20 +83,51 @@ namespace qh_bf {
 	}
 	
 	template <typename T>
-	void run_alwaysCompact(std::vector<point<T>>& pts) {
-		Data<T, Interval_ImplicitHullPoints> data;
-		data.initialize(pts);
+	void Data<T>::compactAndRemoveNotOnHull(std::vector<point<T>>& pts) {
+		uint32_t numPointsKept = 0;
+		uint32_t prevHi = 0;
 		
+		auto copyBetween = [&] (uint32_t lo, uint32_t hi) {
+			if (hi > lo) {
+				numPointsKept = std::copy_if(
+					pts.begin() + lo, pts.begin() + hi, pts.begin() + numPointsKept,
+					[&] (const auto& p) { return !p.isNotOnHull(); }) - pts.begin();
+			}
+		};
+		
+		for (auto& interval : intervals) {
+			auto [ilo, ihi] = interval;
+			copyBetween(prevHi, ilo);
+			std::copy(pts.begin() + ilo, pts.begin() + ihi, pts.begin() + numPointsKept);
+			interval.first = numPointsKept;
+			numPointsKept += ihi - ilo;
+			interval.second = numPointsKept;
+			prevHi = ihi;
+		}
+		
+		copyBetween(prevHi, pts.size());
+		pts.resize(numPointsKept);
+		
+		intervalHullPoints.clear();
+	}
+	
+	inline std::pair<uint32_t, uint32_t> getImplicitHullPointsForInterval(uint32_t ilo, uint32_t ihi, uint32_t numPoints) {
+		return { ilo - 1, ihi == numPoints ? 0 : ihi };
+	}
+	
+	template <typename T>
+	void run_alwaysCompact(std::vector<point<T>>& pts, Data<T>& data) {
 		std::vector<point<T>> pointsLTmp;
-		
 		while (!data.intervals.empty()) {
-			uint32_t nextOutIdx = data.intervals[0].lo;
+			uint32_t nextOutIdx = data.intervals[0].first;
 			
 			for (size_t ii = 0; ii < data.intervals.size(); ii++) {
-				uint32_t ilo = data.intervals[ii].lo;
-				uint32_t ihi = data.intervals[ii].hi;
-				auto [rightHullPoint, leftHullPoint] = data.intervals[ii].getHullPoints(pts);
-				auto [maxPointIdx, maxPoint] = data.findFurthestPoint(
+				auto [ilo, ihi] = data.intervals[ii];
+				auto [rightHullPointIdx, leftHullPointIdx] = getImplicitHullPointsForInterval(ilo, ihi, pts.size());
+				auto rightHullPoint = pts[rightHullPointIdx];
+				auto leftHullPoint = pts[leftHullPointIdx];
+				
+				auto [maxPointIdx, maxPoint] = findFurthestPoint<T>(
 					std::span<point<T>>(pts.data() + ilo, pts.data() + ihi),
 					rightHullPoint, leftHullPoint);
 				maxPointIdx += ilo;
@@ -152,12 +164,12 @@ namespace qh_bf {
 						nextOutIdx += pointsLTmp.size();
 						uint32_t leftIntvHi = nextOutIdx;
 						
-						data.addInterval({ rightIntvLo, rightIntvHi });
-						data.addInterval({ leftIntvLo, leftIntvHi });
+						data.addInterval(rightIntvLo, rightIntvHi);
+						data.addInterval(leftIntvLo, leftIntvHi);
 					}
 				}
 				
-				uint32_t nextIntvLo = ii == data.intervals.size() - 1 ? pts.size() : data.intervals[ii + 1].lo;
+				uint32_t nextIntvLo = ii == data.intervals.size() - 1 ? pts.size() : data.intervals[ii + 1].first;
 				if (nextOutIdx != ihi)
 					std::copy(pts.begin() + ihi, pts.begin() + nextIntvLo, pts.begin() + nextOutIdx);
 				nextOutIdx += nextIntvLo - ihi;
@@ -167,125 +179,129 @@ namespace qh_bf {
 		}
 	}
 	
-	template <typename T, typename ShouldCompactFn>
-	void run_sometimesCompact(std::vector<point<T>>& pts, ShouldCompactFn shouldCompact) {
-		std::vector<uint32_t> numRemovedBefore;
-		
+	template <typename T>
+	int runSingleStepWithoutCompaction(std::vector<point<T>>& pts, Data<T>& data) {
 		int numNotCompacted = 0;
-		int depth = 0;
+		for (size_t ii = 0; ii < data.intervals.size(); ii++) {
+			auto [ilo, ihi] = data.intervals[ii];
+			
+			uint32_t rightHullPointIdx, leftHullPointIdx;
+			if (data.intervalHullPoints.empty()) {
+				std::tie(rightHullPointIdx, leftHullPointIdx) = getImplicitHullPointsForInterval(ilo, ihi, pts.size());
+			} else {
+				std::tie(rightHullPointIdx, leftHullPointIdx) = data.intervalHullPoints[ii];
+			}
+			point<T> rightHullPoint = pts[rightHullPointIdx];
+			point<T> leftHullPoint = pts[leftHullPointIdx];
+			
+			auto [maxPointIdx, maxPoint] = findFurthestPoint<T>(
+				std::span<point<T>>(pts.data() + ilo, pts.data() + ihi),
+				rightHullPoint, leftHullPoint);
+			maxPointIdx += ilo;
+			
+			//If the max point is not outside the line between the left and right hull point,
+			// remove all points in this interval
+			if (pts[maxPointIdx].sideOfLine(leftHullPoint, rightHullPoint) != side::left) {
+				numNotCompacted += ihi - ilo;
+				std::fill(pts.begin() + ilo, pts.begin() + ihi, point<T>::notOnHull);
+				continue;
+			}
+			
+			//If there is only a single point in this interval, keep this point as a hull point
+			if (ihi == ilo + 1)
+				continue;
+			
+			bool upperHull = leftHullPoint < rightHullPoint;
+			
+			std::swap(pts[maxPointIdx], pts[ihi - 1]);
+			
+			auto rightPointsEndIt = std::partition(pts.begin() + ilo, pts.begin() + ihi - 1, [&] (const point<T>& p) -> bool {
+				return (p.x < maxPoint.x) ^ upperHull;
+			});
+			auto rightPointsValidEndIt = std::remove_if(pts.begin() + ilo, rightPointsEndIt, [&] (const point<T>& p) -> bool {
+				return p.sideOfLine(rightHullPoint, maxPoint) != side::right;
+			});
+			std::swap(*rightPointsEndIt, pts[ihi - 1]);
+			uint32_t newMaxPointIdx = rightPointsEndIt - pts.begin();
+			std::fill(rightPointsValidEndIt, rightPointsEndIt, point<T>::notOnHull);
+			
+			auto leftPointsEndIt = std::remove_if(rightPointsEndIt + 1, pts.begin() + ihi, [&] (const point<T>& p) -> bool {
+				return p.sideOfLine(maxPoint, leftHullPoint) != side::right;
+			});
+			std::fill(leftPointsEndIt, pts.begin() + ihi, point<T>::notOnHull);
+			
+			uint32_t pointsRightHi = rightPointsValidEndIt - pts.begin();
+			uint32_t pointsLeftLo = newMaxPointIdx + 1;
+			uint32_t pointsLeftHi = leftPointsEndIt - pts.begin();
+			
+			data.addInterval(ilo, pointsRightHi, rightHullPointIdx, newMaxPointIdx);
+			data.addInterval(pointsLeftLo, pointsLeftHi, newMaxPointIdx, leftHullPointIdx);
+			
+			numNotCompacted += ihi - pointsRightHi - (pointsLeftHi - pointsLeftLo) - 1;
+		}
+		data.swapIntervals();
+		return numNotCompacted;
+	}
+	
+	template <typename T>
+	void run_pointThresholdCompact(std::vector<point<T>>& pts, int compactPointThreshold) {
+		int numNotCompacted = 0;
 		
-		Data<T, Interval_ExplicitHullPoints> data;
+		Data<T> data;
 		data.initialize(pts);
 		
 		while (!data.intervals.empty()) {
-			for (const Interval_ExplicitHullPoints& interval : data.intervals) {
-				uint32_t ilo = interval.lo;
-				uint32_t ihi = interval.hi;
-				std::span<point<T>> iptsSpan(pts.data() + ilo, pts.data() + ihi);
-				auto [rightHullPoint, leftHullPoint] = interval.getHullPoints(pts);
-				auto [maxPointIdx, maxPoint] = data.findFurthestPoint(iptsSpan, rightHullPoint, leftHullPoint);
-				
-				//If the max point is not outside the line between the left and right hull point,
-				// remove all points in this interval
-				if (iptsSpan[maxPointIdx].sideOfLine(leftHullPoint, rightHullPoint) != side::left) {
-					numNotCompacted += iptsSpan.size();
-					std::fill(iptsSpan.begin(), iptsSpan.end(), point<T>::notOnHull);
-					continue;
-				}
-				
-				//If there is only a single point in this interval, keep this point as a hull point
-				if (ihi == ilo + 1)
-					continue;
-				
-				bool upperHull = leftHullPoint < rightHullPoint;
-				
-				point<T> lineDeltaR = maxPoint - rightHullPoint;
-				point<T> lineDeltaL = leftHullPoint - maxPoint;
-				
-				//Remove the max point from the range by replacing it with the first point
-				iptsSpan[maxPointIdx] = iptsSpan[0];
-				uint32_t rightPointsEnd = 1;
-				uint32_t leftPointsBegin = iptsSpan.size();
-				
-				//Partitions points so that:
-				// * Points to the right of the max point and outside the line between rightHullPoint and maxPoint are moved to the start
-				// * Points to the left of the max point and outside the line between maxPoint and leftHullPoint are moved to the end
-				// * Other points (at the center of the interval) are set to nan
-				for (uint32_t i = 1; i < leftPointsBegin;) {
-					bool right = (iptsSpan[i].x < maxPoint.x) ^ upperHull;
-					if ((iptsSpan[i] - maxPoint).cross(right ? lineDeltaR : lineDeltaL) > 0) {
-						if (right)
-							std::swap(iptsSpan[rightPointsEnd++], iptsSpan[i++]);
-						else
-							std::swap(iptsSpan[--leftPointsBegin], iptsSpan[i]);
-					} else {
-						iptsSpan[i++] = point<T>::notOnHull;
-						numNotCompacted++;
-					}
-				}
-				
-				//Moves the last point in the right interval to the first point (that was previously removed),
-				// and places the max point in the correct position between the two intervals.
-				rightPointsEnd--;
-				iptsSpan[0] = iptsSpan[rightPointsEnd];
-				iptsSpan[rightPointsEnd] = maxPoint;
-				
-				rightPointsEnd += ilo;
-				leftPointsBegin += ilo;
-				data.addInterval({ ilo, rightPointsEnd, interval.hullPointR, rightPointsEnd });
-				data.addInterval({ leftPointsBegin, ihi, rightPointsEnd, interval.hullPointL });
-			}
-			data.swapIntervals();
-			
-			if (shouldCompact(numNotCompacted, depth) && numNotCompacted > 0) {
-				uint32_t numKept = 0;
-				while (!pts[numKept].isNotOnHull())
-					numKept++;
-				
-				if (numRemovedBefore.empty()) {
-					numRemovedBefore.resize(pts.size() + 1, 0);
-				} else {
-					std::fill_n(numRemovedBefore.begin(), numKept + 1, 0);
-				}
-				
-				for (uint32_t i = numKept + 1; i < pts.size(); i++) {
-					numRemovedBefore[i] = i - numKept;
-					if (!pts[i].isNotOnHull())
-						pts[numKept++] = pts[i];
-				}
-				numRemovedBefore[pts.size()] = pts.size() - numKept;
-				
-				pts.resize(numKept);
-				
-				for (Interval_ExplicitHullPoints& interval : data.intervals) {
-					interval.lo -= numRemovedBefore[interval.lo];
-					interval.hi -= numRemovedBefore[interval.hi];
-					interval.hullPointR -= numRemovedBefore[interval.hullPointR];
-					interval.hullPointL -= numRemovedBefore[interval.hullPointL];
-				}
-				
+			numNotCompacted += runSingleStepWithoutCompaction(pts, data);
+			if (numNotCompacted > compactPointThreshold) {
+				data.compactAndRemoveNotOnHull(pts);
 				numNotCompacted = 0;
 			}
-			
-			depth++;
 		}
-		if (numNotCompacted) {
+		if (numNotCompacted > 0) {
 			removeNotOnHull(pts);
 		}
 	}
 	
 	template <typename T>
+	void run_depthThresholdCompact(std::vector<point<T>>& pts, int compactDepthThreshold) {
+		int numNotCompacted = 0;
+		
+		Data<T> data;
+		data.initialize(pts);
+		
+		for (int depth = 0; depth < compactDepthThreshold && !data.intervals.empty(); depth++) {
+			numNotCompacted += runSingleStepWithoutCompaction(pts, data);
+		}
+		
+		if (data.intervals.empty()) {
+			if (numNotCompacted > 0)
+				removeNotOnHull(pts);
+			return;
+		}
+		
+		data.intervalHullPoints.clear();
+		if (numNotCompacted > 0) {
+			data.compactAndRemoveNotOnHull(pts);
+		}
+		
+		run_alwaysCompact(pts, data);
+	}
+	
+	template <typename T>
 	void run(std::vector<point<T>>& pts) {
-		if (implArgs == "A" || implArgs == "") {
-			run_alwaysCompact(pts);
-		} else if (implArgs == "N") {
-			run_sometimesCompact(pts, [] (int, int) { return false; });
+		if (implArgs == "N") {
+			run_pointThresholdCompact(pts, std::numeric_limits<int>::max());
 		} else if (auto pointsThresholdOpt = getImplArgInt("P")) {
-			run_sometimesCompact(pts, [&] (int numNotCompacted, int) { return numNotCompacted >= *pointsThresholdOpt; });
-		} else if (auto depthThresholdGOpt = getImplArgInt("D>")) {
-			run_sometimesCompact(pts, [&] (int, int depth) { return depth > *depthThresholdGOpt; });
-		} else if (auto depthThresholdLOpt = getImplArgInt("D<")) {
-			run_sometimesCompact(pts, [&] (int, int depth) { return depth < *depthThresholdLOpt; });
+			run_pointThresholdCompact(pts, std::max(*pointsThresholdOpt, 1));
+		} else {
+			int depthThreshold = getImplArgInt("D").value_or(0);
+			if (depthThreshold > 0) {
+				run_depthThresholdCompact(pts, depthThreshold);
+			} else {
+				Data<T> data;
+				data.initialize(pts);
+				run_alwaysCompact(pts, data);
+			}
 		}
 	}
 }
