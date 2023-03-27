@@ -77,7 +77,7 @@ void runQuickhullEarlySortX(std::vector<point<T>>& pts) {
 	quickhullRecESX<T>(belowSpan, rightmostPt, leftmostPt);
 	quickhullRecESX<T>(aboveSpan, leftmostPt, rightmostPt);
 	
-	pts.erase(std::remove_if(pts.begin(), pts.end(), [&] (const point<T>& p) { return p.isNotOnHull(); }), pts.end());
+	removeNotOnHull(pts);
 }
 
 DEF_HULL_IMPL({

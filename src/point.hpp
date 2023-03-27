@@ -5,6 +5,8 @@
 #include <tuple>
 #include <cmath>
 #include <limits>
+#include <vector>
+#include <algorithm>
 
 enum class side {
 	left,
@@ -79,4 +81,9 @@ static_assert(sizeof(pointd) == 2 * sizeof(double));
 template <typename T>
 std::ostream& operator<<(std::ostream& stream, const point<T>& p) {
 	return stream << "(" << p.x << " " << p.y << ")";
+}
+
+template <typename T>
+void removeNotOnHull(std::vector<point<T>>& pts) {
+	pts.erase(std::remove_if(pts.begin(), pts.end(), [&] (const point<T>& p) { return p.isNotOnHull(); }), pts.end());
 }

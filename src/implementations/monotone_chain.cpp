@@ -46,7 +46,7 @@ void solveMonotoneChain(std::vector<point<T>>& pts) {
 	solveOneMonotoneChain<T>(std::span<point<T>>(&pts[1], &*belowPointsEndIt), rightmostPt, leftmostPt);
 	solveOneMonotoneChain<T>(std::span<point<T>>(&*belowPointsEndIt + 1, pts.data() + pts.size()), leftmostPt, rightmostPt);
 	
-	pts.erase(std::remove_if(pts.begin(), pts.end(), [&] (const point<T>& p) { return p.isNotOnHull(); }), pts.end());
+	removeNotOnHull(pts);
 }
 
 DEF_HULL_IMPL({

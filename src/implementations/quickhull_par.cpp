@@ -117,7 +117,7 @@ void runQuickhullPar(std::vector<point<T>>& pts) {
 		thread.join();
 	}
 	
-	pts.erase(std::remove_if(pts.begin(), pts.end(), [&] (const point<T>& p) { return p.isNotOnHull(); }), pts.end());
+	removeNotOnHull(pts);
 }
 
 DEF_HULL_IMPL({
