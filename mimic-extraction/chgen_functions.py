@@ -7,7 +7,7 @@ from sklearn.cluster import DBSCAN
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import resample
 
-def run_dbscan(points, xy, df_name, eps = 0.5, min_samples = 4):
+def run_dbscan(points, eps = 0.5, min_samples = 4):
     '''
     Detect outliers using DBSCAN
 
@@ -36,14 +36,13 @@ def run_dbscan(points, xy, df_name, eps = 0.5, min_samples = 4):
     return bools
 
 
-def find_loss(combo, df, df_name, eps = 0.5, min_samples = 4):
+def find_loss(combo, df, eps = 0.5, min_samples = 4):
     '''
     Wrapper function to detect outliers using DBSCAN
 
     Args:
         combo: a list, pair of parameters of interest
         df: dataframe with values
-        df_name: string, name of a dataframe to process
         eps: float, a DBSCAN parameter to define a neighborhood of a point
         min_samples: int, minimal number of points in the neighborhood of a point
         not_noise: float, minimal (relative) amount of instances of a dataframe to be considered as a cluster
@@ -57,7 +56,7 @@ def find_loss(combo, df, df_name, eps = 0.5, min_samples = 4):
     points = df.loc[:,combo]
     points = np.array(points)
 
-    bools = run_dbscan(points = points, xy = combo, df_name = df_name, eps = eps, min_samples = min_samples)
+    bools = run_dbscan(points = points, eps = eps, min_samples = min_samples)
 
     return bools
 
@@ -73,20 +72,20 @@ def full_intersections(df_1, df_2, resample_iterations = 10):
     Returns:
         df: a pandas dataframe, a table with intersection values for a combination of parameters and hospital cases
     '''
-    output = []
+    datasets = []
     for i in np.arange(resample_iterations):
         # create a random sample set of a certain size for both clinics
         boot_1 = resample(df_1, replace=True, n_samples=len(df_1), random_state=i+i)
         boot_2 = resample(df_2, replace=True, n_samples=len(df_2), random_state=i+i)
 
         #Normally would check #points in boot_1 that are in conv(boot_2) and vice versa.
-        output.append(boot_1.tolist())
-        output.append(boot_2.tolist())
+        datasets.append(boot_1.tolist())
+        datasets.append(boot_2.tolist())
 
 
-    return output
+    return datasets
 
-def extrant_convex_hull_calls(combo, df_1, df_2, bools_1 = [], bools_2 = []):
+def extrant_convex_hull_calls(combo, df_1, df_2, bools_1 = [], bools_2 = [], resample_iterations = 10):
     '''
     Copy of chgen.compute_intersections, but we extract what sets of 2D points it would compute convex hull of.
     '''
@@ -101,5 +100,4 @@ def extrant_convex_hull_calls(combo, df_1, df_2, bools_1 = [], bools_2 = []):
         points_1=points_1[bools_1]
         points_2=points_2[bools_2]
 
-    df = full_intersections(df_1 = points_1, df_2 = points_2)
-    return df
+    return full_intersections(df_1 = points_1, df_2 = points_2, resample_iterations = resample_iterations)
