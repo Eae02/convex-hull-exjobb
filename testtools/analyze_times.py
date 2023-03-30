@@ -6,7 +6,7 @@ numtests = 0
 totelapsed = 0.0
 totcompute = 0.0
 
-n = int(sys.argv[1]) #Number of input points in each test
+n = float(sys.argv[1]) #Number of input points in each test
 
 for line in sys.stdin.readlines():
     if "elapsed time" in line:
