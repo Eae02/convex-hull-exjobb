@@ -9,3 +9,4 @@
 *.in
 /results
 /__pycache__
+*.csv
