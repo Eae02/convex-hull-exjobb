@@ -1,5 +1,6 @@
 #include "../hull_impl.hpp"
 #include "../point.hpp"
+#include "quickhull_common.hpp"
 
 #include <algorithm>
 #include <vector>
@@ -11,19 +12,7 @@ void quickhullRecESX(std::span<point<T>> pts, point<T> leftHullPoint, point<T> r
 	if (pts.empty())
 		return;
 	
-	point<T> normal = (rightHullPoint - leftHullPoint).rotated90CCW();
-	
-	size_t maxPointIdx = 0;
-	T maxPointDot = normal.dot(pts[0] - leftHullPoint);
-	point<T> maxPoint = pts[0];
-	for (size_t i = 1; i < pts.size(); i++) {
-		T dotProduct = normal.dot(pts[i] - leftHullPoint);
-		if (std::tie(dotProduct, pts[i]) > std::tie(maxPointDot, maxPoint)) {
-			maxPointIdx = i;
-			maxPointDot = dotProduct;
-			maxPoint = pts[i];
-		}
-	}
+	size_t maxPointIdx = findFurthestPointFromLine<T>(pts, leftHullPoint, rightHullPoint);
 	
 	if (pts[maxPointIdx].sideOfLine(leftHullPoint, rightHullPoint) != side::left) {
 		std::fill(pts.begin(), pts.end(), point<T>::notOnHull);
@@ -32,6 +21,8 @@ void quickhullRecESX(std::span<point<T>> pts, point<T> leftHullPoint, point<T> r
 	
 	if (pts.size() == 1)
 		return;
+	
+	point<T> maxPoint = pts[maxPointIdx];
 	
 	auto rightPointsEndIt = std::stable_partition(pts.begin(), pts.begin() + maxPointIdx, [&] (const point<T>& p) -> bool {
 		return p.sideOfLine(rightHullPoint, maxPoint) == side::right;

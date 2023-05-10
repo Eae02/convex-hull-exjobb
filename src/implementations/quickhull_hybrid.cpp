@@ -7,6 +7,7 @@ For example, qh_hybrid_jw:P10 will switch to jarvis wrap when there are 10 point
 #include "../hull_impl.hpp"
 #include "../point.hpp"
 #include "monotone_chain.hpp"
+#include "quickhull_common.hpp"
 
 #include <algorithm>
 #include <vector>
@@ -63,32 +64,21 @@ struct HybridData {
 	void(*impl)(std::span<point<T>>, point<T>, point<T>);
 };
 
-template <typename T>
+template <qhPartitionStrategy S, typename T>
 void quickhullHybridRec(
 	std::span<point<T>> pts, point<T> leftHullPoint, point<T> rightHullPoint,
-	bool upperHull, size_t depth, const HybridData<T>& hybridData
+	size_t depth, const HybridData<T>& hybridData
 ) {
 	if (pts.empty())
 		return;
 	
-	if ((pts.size() <= hybridData.changeThresholdPoints || depth >= hybridData.changeThresholdDepth) && depth != 0) {
+	if (pts.size() <= hybridData.changeThresholdPoints || depth >= hybridData.changeThresholdDepth) {
 		hybridData.impl(pts, leftHullPoint, rightHullPoint);
 		return;
 	}
 	
-	point<T> normal = (rightHullPoint - leftHullPoint).rotated90CCW();
-	
-	size_t maxPointIdx = 0;
-	T maxPointDot = normal.dot(pts[0] - leftHullPoint);
-	point<T> maxPoint = pts[0];
-	for (size_t i = 1; i < pts.size(); i++) {
-		T dotProduct = normal.dot(pts[i] - leftHullPoint);
-		if (std::tie(dotProduct, pts[i]) > std::tie(maxPointDot, maxPoint)) {
-			maxPointIdx = i;
-			maxPointDot = dotProduct;
-			maxPoint = pts[i];
-		}
-	}
+	size_t maxPointIdx = findFurthestPointFromLine<T>(pts, leftHullPoint, rightHullPoint);
+	point<T> maxPoint = pts[maxPointIdx];
 	
 	if (pts[maxPointIdx].sideOfLine(leftHullPoint, rightHullPoint) != side::left) {
 		std::fill(pts.begin(), pts.end(), point<T>::notOnHull);
@@ -98,38 +88,13 @@ void quickhullHybridRec(
 	if (pts.size() == 1)
 		return;
 	
-	std::swap(pts[maxPointIdx], pts.back());
+	auto [rightSubspan, leftSubspan] = quickhullPartitionPoints<S, T>(pts, leftHullPoint, rightHullPoint, maxPointIdx);
 	
-	// Partitioning on x-coordinate reduces number of sideOfLine calls.
-	auto rightPointsEndIt = std::partition(pts.begin(), pts.end() - 1, [&] (const point<T>& p) -> bool {
-		return (p.x < maxPoint.x) ^ upperHull;
-	});
-	
-	auto rightPointsValidEndIt = std::partition(pts.begin(), rightPointsEndIt, [&] (const point<T>& p) -> bool {
-		return p.sideOfLine(rightHullPoint, maxPoint) == side::right;
-	});
-
-	std::swap(*rightPointsEndIt, pts.back());
-	std::fill(rightPointsValidEndIt, rightPointsEndIt, point<T>::notOnHull);
-
-	auto leftPointsEndIt = std::partition(rightPointsEndIt + 1, pts.end(), [&] (const point<T>& p) -> bool {
-		return p.sideOfLine(maxPoint, leftHullPoint) == side::right;
-	});
-
-	size_t numPointsRight = rightPointsEndIt - pts.begin();
-	size_t numPointsValidRight = rightPointsValidEndIt - pts.begin();
-	size_t numPointsLeft = (leftPointsEndIt - rightPointsEndIt) - 1;
-    
-	std::fill(leftPointsEndIt, pts.end(), point<T>::notOnHull);
-
-	auto rightSubspan = pts.subspan(0, numPointsValidRight);
-	quickhullHybridRec<T>(rightSubspan, maxPoint, rightHullPoint, upperHull, depth + 1, hybridData);
-	
-	auto leftSubspan = pts.subspan(numPointsRight + 1, numPointsLeft);
-	quickhullHybridRec<T>(leftSubspan, leftHullPoint, maxPoint, upperHull, depth + 1, hybridData);
+	quickhullHybridRec<S, T>(rightSubspan, maxPoint, rightHullPoint, depth + 1, hybridData);
+	quickhullHybridRec<S, T>(leftSubspan, leftHullPoint, maxPoint, depth + 1, hybridData);
 }
 
-template <typename T>
+template <typename T, qhPartitionStrategy S = qhPartitionStrategy::noPartitionByX>
 void runQuickhullHybrid(std::vector<point<T>>& pts, void(*innerImpl)(std::span<point<T>>, point<T>, point<T>)) {
 	HybridData<T> hybridData;
 	hybridData.impl = innerImpl;
@@ -152,8 +117,8 @@ void runQuickhullHybrid(std::vector<point<T>>& pts, void(*innerImpl)(std::span<p
 	
 	std::swap(pts.back(), *belowPointsEndIt);
 	
-	quickhullHybridRec<T>(std::span<point<T>>(&pts[1], &*belowPointsEndIt), rightmostPt, leftmostPt, false, 0, hybridData);
-	quickhullHybridRec<T>(std::span<point<T>>(&*belowPointsEndIt + 1, pts.data() + pts.size()), leftmostPt, rightmostPt, true, 0, hybridData);
+	quickhullHybridRec<S, T>(std::span<point<T>>(&pts[1], &*belowPointsEndIt), rightmostPt, leftmostPt, 0, hybridData);
+	quickhullHybridRec<S, T>(std::span<point<T>>(&*belowPointsEndIt + 1, pts.data() + pts.size()), leftmostPt, rightmostPt, 0, hybridData);
 	
 	removeNotOnHull(pts);
 }

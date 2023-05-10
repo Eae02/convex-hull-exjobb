@@ -145,19 +145,19 @@ void quickhullParallel(std::vector<pointd>& pts, bool removePoints) {
 }
 
 DEF_HULL_IMPL({
-	.name = "qhp",
+	.name = "qhp_bf",
 	.runInt = nullptr,
 	.runDouble = std::bind(quickhullParallel<std::execution::parallel_policy>, std::placeholders::_1, true),
 });
 
 DEF_HULL_IMPL({
-	.name = "qhp_seq",
+	.name = "qhp_bf_seq",
 	.runInt = nullptr,
 	.runDouble = std::bind(quickhullParallel<std::execution::sequenced_policy>, std::placeholders::_1, true),
 });
 
 DEF_HULL_IMPL({
-	.name = "qhp_nr",
+	.name = "qhp_bf_nr",
 	.runInt = nullptr,
 	.runDouble = std::bind(quickhullParallel<std::execution::parallel_policy>, std::placeholders::_1, false),
 });
