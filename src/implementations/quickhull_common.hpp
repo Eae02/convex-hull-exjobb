@@ -29,12 +29,12 @@ enum class qhPartitionStrategy {
 	singleScan
 };
 
-template <qhPartitionStrategy S, typename T>
+template <qhPartitionStrategy S, typename T, bool WriteNotOnHull = true>
 std::array<std::span<point<T>>, 2> quickhullPartitionPoints(
 	std::span<point<T>> pts,
 	point<T> leftHullPoint,
 	point<T> rightHullPoint,
-	size_t midHullPointIdx
+	size_t& midHullPointIdx
 ) {
 	point<T> maxPoint = pts[midHullPointIdx];
 	std::swap(pts[midHullPointIdx], pts.back());
@@ -54,11 +54,15 @@ std::array<std::span<point<T>>, 2> quickhullPartitionPoints(
 			} else if (pts[i].sideOfLine(maxPoint, leftHullPoint) == side::right) {
 				std::swap(pts[--numPointsNotLeft], pts[i]);
 			} else {
-				pts[i++] = point<T>::notOnHull;
+				if constexpr (WriteNotOnHull) {
+					pts[i] = point<T>::notOnHull;
+				}
+				i++;
 			}
 		}
 		
 		std::swap(pts[numPointsNotLeft], pts.back());
+		midHullPointIdx = numPointsNotLeft;
 		
 		return { pts.subspan(0, numPointsRight), pts.subspan(numPointsNotLeft + 1) };
 	}
@@ -74,7 +78,9 @@ std::array<std::span<point<T>>, 2> quickhullPartitionPoints(
 			return p.sideOfLine(rightHullPoint, maxPoint) == side::right;
 		});
 		
-		std::fill(rightPointsValidEndIt, rightPointsEndIt, point<T>::notOnHull);
+		if constexpr (WriteNotOnHull) {
+			std::fill(rightPointsValidEndIt, rightPointsEndIt, point<T>::notOnHull);
+		}
 		
 		numPointsNotLeft = rightPointsEndIt - pts.begin();
 		numPointsRight = rightPointsValidEndIt - pts.begin();
@@ -87,13 +93,16 @@ std::array<std::span<point<T>>, 2> quickhullPartitionPoints(
 	}
 	
 	std::swap(pts[numPointsNotLeft], pts.back());
+	midHullPointIdx = numPointsNotLeft;
 	
 	auto leftPointsBeginIt = pts.begin() + numPointsNotLeft + 1;
 	auto leftPointsEndIt = std::partition(leftPointsBeginIt, pts.end(), [&] (const point<T>& p) -> bool {
 		return p.sideOfLine(maxPoint, leftHullPoint) == side::right;
 	});
 	
-	std::fill(leftPointsEndIt, pts.end(), point<T>::notOnHull);
+	if constexpr (WriteNotOnHull) {
+		std::fill(leftPointsEndIt, pts.end(), point<T>::notOnHull);
+	}
 	
 	size_t numPointsLeft = leftPointsEndIt - leftPointsBeginIt;
 	
