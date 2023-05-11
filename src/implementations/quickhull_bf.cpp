@@ -7,8 +7,6 @@
 #include <span>
 #include <cmath>
 
-#include <iostream>
-
 namespace qh_bf {
 	template <typename T>
 	struct Data {
@@ -186,7 +184,6 @@ namespace qh_bf {
 			
 			numNotCompacted += ptsSpan.size() - rightSubspan.size() - leftSubspan.size() - 1;
 		}
-		std::cerr << numNotCompacted << "\n";
 		data.swapIntervals();
 		return numNotCompacted;
 	}
