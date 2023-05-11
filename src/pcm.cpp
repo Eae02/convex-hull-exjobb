@@ -42,8 +42,8 @@ struct PCMPerfData : PerfData {
 		addMeasurment("instr retired", &pcm::getInstructionsRetired<pcm::SystemCounterState>);
 		addMeasurment("instr per clock", &pcm::getIPC<pcm::SystemCounterState>);
 		addMeasurment("instr per clock (core)", &pcm::getCoreIPC<pcm::SystemCounterState>);
-		addMeasurment("memory bytes read", &pcm::getBytesReadFromMC<pcm::SystemCounterState>);
-		addMeasurment("memory bytes written", &pcm::getBytesWrittenToMC<pcm::SystemCounterState>);
+		addMeasurment("MC bytes read", &pcm::getBytesReadFromMC<pcm::SystemCounterState>);
+		addMeasurment("MC bytes written", &pcm::getBytesWrittenToMC<pcm::SystemCounterState>);
 		addMeasurment("L2 hits", &pcm::getL2CacheHits<pcm::SystemCounterState>);
 		addMeasurment("L2 misses", &pcm::getL2CacheMisses<pcm::SystemCounterState>);
 		addMeasurment("L2 hit ratio", &pcm::getL2CacheHitRatio<pcm::SystemCounterState>);

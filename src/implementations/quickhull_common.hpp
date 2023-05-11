@@ -26,6 +26,7 @@ size_t findFurthestPointFromLine(std::span<const point<T>> pts, point<T> lineSta
 enum class qhPartitionStrategy {
 	noPartitionByX,
 	firstPartitionByX,
+	singleScan
 };
 
 template <qhPartitionStrategy S, typename T>
@@ -39,6 +40,28 @@ std::array<std::span<point<T>>, 2> quickhullPartitionPoints(
 	std::swap(pts[midHullPointIdx], pts.back());
 	
 	size_t numPointsRight, numPointsNotLeft;
+	
+	if constexpr (S == qhPartitionStrategy::singleScan) {
+		numPointsRight = 0;
+		while (numPointsRight < pts.size() - 1 && pts[numPointsRight].sideOfLine(rightHullPoint, maxPoint) == side::right) {
+			numPointsRight++;
+		}
+		
+		numPointsNotLeft = pts.size() - 1;
+		for (size_t i = numPointsRight; i < numPointsNotLeft;) {
+			if (pts[i].sideOfLine(rightHullPoint, maxPoint) == side::right) {
+				std::swap(pts[numPointsRight++], pts[i++]);
+			} else if (pts[i].sideOfLine(maxPoint, leftHullPoint) == side::right) {
+				std::swap(pts[--numPointsNotLeft], pts[i]);
+			} else {
+				pts[i++] = point<T>::notOnHull;
+			}
+		}
+		
+		std::swap(pts[numPointsNotLeft], pts.back());
+		
+		return { pts.subspan(0, numPointsRight), pts.subspan(numPointsNotLeft + 1) };
+	}
 	
 	if constexpr (S == qhPartitionStrategy::firstPartitionByX) {
 		bool upperHull = leftHullPoint < rightHullPoint;

@@ -79,3 +79,9 @@ DEF_HULL_IMPL({
 	.runInt = runQuickhull<qhPartitionStrategy::firstPartitionByX, int64_t>,
 	.runDouble = runQuickhull<qhPartitionStrategy::firstPartitionByX, double>,
 });
+
+DEF_HULL_IMPL({
+	.name = "qh_rec_ss",
+	.runInt = runQuickhull<qhPartitionStrategy::singleScan, int64_t>,
+	.runDouble = runQuickhull<qhPartitionStrategy::singleScan, double>,
+});
