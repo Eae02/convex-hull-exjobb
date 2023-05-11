@@ -4,9 +4,9 @@ import sys
 
 
 def run_implementations(implementations : List[str]):
-    test_cases = [("gencirc.bin", 100, 20),("gencirc.bin", 1000, 20),("gencirc.bin", 10000, 20),("gencirc.bin", 100000, 10),("gencirc.bin", 1000000, 5),("gencirc.bin", 2000000, 5),("gencirc.bin", 4000000, 5)] #test_generator, n, num_iterations
-    test_cases.extend([("gensquare.bin", 100, 20),("gensquare.bin", 1000, 20),("gensquare.bin", 10000, 20),("gensquare.bin", 100000, 10),("gensquare.bin", 1000000, 5),("gensquare.bin", 2000000, 5),("gensquare.bin", 4000000, 5),("gensquare.bin", 10000000, 5)])
-    test_cases.extend([("gendisk.bin", 100, 20),("gendisk.bin", 1000, 20),("gendisk.bin", 10000, 20),("gendisk.bin", 100000, 10),("gendisk.bin", 1000000, 5),("gendisk.bin", 2000000, 5),("gendisk.bin", 4000000, 5),("gendisk.bin", 10000000, 5)])
+    test_cases = [("gencirc.bin", 100, 20),("gencirc.bin", 1000, 20),("gencirc.bin", 10000, 20),("gencirc.bin", 100000, 10),("gencirc.bin", 1000000, 5),("gencirc.bin", 2000000, 5),("gencirc.bin", 4000000, 5),("gencirc.bin", 10000000, 5)] #test_generator, n, num_iterations
+    test_cases.extend([("gensquare.bin", 100, 20),("gensquare.bin", 1000, 20),("gensquare.bin", 10000, 20),("gensquare.bin", 100000, 10),("gensquare.bin", 1000000, 5),("gensquare.bin", 2000000, 5),("gensquare.bin", 4000000, 5),("gensquare.bin", 10000000, 5),("gensquare.bin", 20000000, 5),("gensquare.bin", 40000000, 5)])
+    test_cases.extend([("gendisk.bin", 100, 20),("gendisk.bin", 1000, 20),("gendisk.bin", 10000, 20),("gendisk.bin", 100000, 10),("gendisk.bin", 1000000, 5),("gendisk.bin", 2000000, 5),("gendisk.bin", 4000000, 5),("gendisk.bin", 10000000, 5),("gendisk.bin", 20000000, 5),("gendisk.bin", 40000000, 5)])
     results = [] # Table of results containing: implementation_name, test_generator, seed, n, compute_time
     subprocess.run(['mkdir', 'results'])
     with open('results/times.csv','w') as f:
@@ -63,10 +63,10 @@ def main():
     # implementations = ["cgal_akl_toussaint", "cgal_graham", "chan_plain", "chan_refined", "merge_hull_reduce_copy", "dc_preparata_hong_rewrite", "impl1", "impl1_par", "qh_rec", "qh_recpar", "qh_avx"]
 
     # All sequential implementations that run on POWER
-    #implementations = ["chan_plain", "chan_idea1", "chan_idea2", "chan_idea12", "chan_idea3", "chan_refined", "dc_preparata_hong", "dc_preparata_hong_rewrite", "impl1", "merge_hull", "merge_hull_chan_trick", "merge_hull_reduce_copy", "qh_rec", "qhp_seq"]
+    implementations = ["chan_plain", "chan_idea1", "chan_idea2", "chan_idea12", "chan_idea3", "chan_refined", "dc_preparata_hong", "dc_preparata_hong_rewrite", "impl1", "mc", "merge_hull", "merge_hull_chan_trick", "merge_hull_reduce_copy", "ouellet", "qh_bf_nxp", "qh_bf_ss", "qh_bf_xp", "qh_hybrid_esx", "qh_hybrid_jw", "qh_hybrid_mc", "qh_rec_esx", "qh_rec_nxp", "qh_rec_ss", "qh_rec_xp", "qh_rec_xyp", "qh_soa"]
     
     #implementations = ["qh_rec", "qh_rec_nxp", "qh_rec_esx", "qh_hybrid_esx:D1", "qh_hybrid_esx:D2", "qh_hybrid_esx:D3"]
-    implementations = ["qh_rec", "qh_bf"]
+    # implementations = ["qh_rec", "qh_bf"]
     
     # Comparisons with parallell implementations that run on POWER
     # implementations = ["impl1", "impl1_par", "qh_rec", "qh_recpar", "qhp", "qhp_nr", "qhp_seq"]
@@ -80,7 +80,7 @@ def main():
     # Test of Ouellets algorithm
     # implementations = ["chan_plain", "chan_refined", "qh_rec", "merge_hull_reduce_copy", "impl1", "ouellet"]
     
-    implementations = ["qh_rec", "qh_bf:A", "qh_bf:N"]
+    # implementations = ["qh_rec", "qh_bf:A", "qh_bf:N"]
 
     run_implementations(implementations)
     if len(sys.argv)>1 and sys.argv[1] == "plot":
