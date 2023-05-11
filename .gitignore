@@ -4,6 +4,7 @@
 .directory
 .DS_store
 /.testcases
+/.mimicdata
 *.bin
 *.out
 *.in

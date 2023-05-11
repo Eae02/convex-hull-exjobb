@@ -72,20 +72,21 @@ def full_intersections(df_1, df_2, resample_iterations = 10):
     Returns:
         df: a pandas dataframe, a table with intersection values for a combination of parameters and hospital cases
     '''
-    datasets = []
+    datasetsA = []
+    datasetsB = []
     for i in np.arange(resample_iterations):
         # create a random sample set of a certain size for both clinics
         boot_1 = resample(df_1, replace=True, n_samples=len(df_1), random_state=i+i)
         boot_2 = resample(df_2, replace=True, n_samples=len(df_2), random_state=i+i)
 
         #Normally would check #points in boot_1 that are in conv(boot_2) and vice versa.
-        datasets.append(boot_1.tolist())
-        datasets.append(boot_2.tolist())
+        datasetsA.append(boot_1.tolist())
+        datasetsB.append(boot_2.tolist())
 
 
-    return datasets
+    return datasetsA,datasetsB
 
-def extrant_convex_hull_calls(combo, df_1, df_2, bools_1 = [], bools_2 = [], resample_iterations = 10):
+def extract_convex_hull_calls(combo, df_1, df_2, bools_1 = [], bools_2 = [], resample_iterations = 10):
     '''
     Copy of chgen.compute_intersections, but we extract what sets of 2D points it would compute convex hull of.
     '''

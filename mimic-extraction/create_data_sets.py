@@ -13,7 +13,7 @@ logging.basicConfig(filename='output/log_ch.txt',level=logging.INFO)
 import os
 
 #from chgen.wrapper import find_loss, compute_intersections
-from chgen_functions import find_loss, extrant_convex_hull_calls
+from chgen_functions import find_loss, extract_convex_hull_calls
 
 OUTPUT_LOCATION = 'output'
 MAX_NO_DATASETS = 1000
@@ -45,58 +45,51 @@ df_2 = df_2[common_params]
 # create a list with all combinations of parameters for a defined dimension
 combos = list(combinations(common_params, dim))
 logging.info(f'Number of combos: {len(combos)} for {df_names[0]} and {df_names[1]}')
-resample_iterations = MAX_NO_DATASETS//(2*len(combos))+1
+resample_iterations = MAX_NO_DATASETS//len(combos)+1
 
 # computation of intersection values with all points (outliers included) without sampling of instances
-datasets_with_outliers = []
+medicalA = []
+medicalB = []
 for combo in combos:
     logging.info(f'Creating dataset for features {combo}')
-    newdatasets = extrant_convex_hull_calls(combo = combo, df_1 = df_1, df_2 = df_2, bools_1 = [], bools_2 = [], resample_iterations = resample_iterations)
-    datasets_with_outliers.extend(newdatasets)
-logging.info(f'BEFORE DBSCAN, {len(datasets_with_outliers)} data sets created')
+    # Code to run DBscan and remove outliers. Doesn't make a big difference though which is why it is ignored.
+    # bools_1 = find_loss(combo, df_1, eps, min_samples)
+    # bools_2 = find_loss(combo, df_2, eps, min_samples)
+    newA,newB = extract_convex_hull_calls(combo = combo, df_1 = df_1, df_2 = df_2, bools_1 = [], bools_2 = [], resample_iterations = resample_iterations)
+    medicalA.extend(newA)
+    medicalB.extend(newB)
+logging.info(f'{len(medicalA)} data sets created')
+assert len(medicalA) == len(medicalB)
 
-total_n_with_outliers = 0
-filename = f'{OUTPUT_LOCATION}/with_outliers/1.in'
+total_input_pointsA = 0
+filename = f'{OUTPUT_LOCATION}/medicalA/1.in'
 os.makedirs(os.path.dirname(filename), exist_ok=True)
-for i, dataset in enumerate(datasets_with_outliers):
+for i, dataset in enumerate(medicalA):
     if i >= MAX_NO_DATASETS:
         break
     n = len(dataset)
-    total_n_with_outliers += n
-    with open(f'{OUTPUT_LOCATION}/with_outliers/{i+1}.in', 'w') as f:
+    total_input_pointsA += n
+    with open(f'{OUTPUT_LOCATION}/medicalA/{i+1}.in', 'w') as f:
         f.write('2\n')
         f.write(f'{n}\n')
         for x,y in dataset:
             f.write(f'{x} {y}\n')
 
-logging.info(f'BEFORE DBSCAN, average dataset size is {total_n_with_outliers/min(MAX_NO_DATASETS,len(datasets_with_outliers))}')
+logging.info(f'Average MedicalA dataset size is {total_input_pointsA/min(MAX_NO_DATASETS,len(medicalA))}')
 
-datasets_without_outliers = []
-# find outliers
-eps = 0.5 #neighborhood distance of a point
-min_samples = 4 #minimal number of neighbors of a point
 
-# computation of intersection values after outlier removal without sampling of instances
-for combo in combos:
-    logging.info(f'Creating outlier free dataset for features {combo}')
-    bools_1 = find_loss(combo, df_1, eps, min_samples)
-    bools_2 = find_loss(combo, df_2, eps, min_samples)
-    newdatasets = extrant_convex_hull_calls(combo = combo, df_1 = df_1, df_2 = df_2, bools_1 = bools_1, bools_2 = bools_2, resample_iterations = resample_iterations)
-    datasets_without_outliers.extend(newdatasets)
-logging.info(f'AFTER DBSCAN, {len(datasets_without_outliers)} data sets created')
-
-total_n_without_outliers = 0
-filename = f'{OUTPUT_LOCATION}/without_outliers/1.in'
+total_input_pointsB = 0
+filename = f'{OUTPUT_LOCATION}/medicalB/1.in'
 os.makedirs(os.path.dirname(filename), exist_ok=True)
-for i, dataset in enumerate(datasets_without_outliers):
+for i, dataset in enumerate(medicalB):
     if i >= MAX_NO_DATASETS:
         break
     n = len(dataset)
-    total_n_without_outliers += n
-    with open(f'{OUTPUT_LOCATION}/without_outliers/{i+1}.in','w') as f:
+    total_input_pointsB += n
+    with open(f'{OUTPUT_LOCATION}/medicalB/{i+1}.in', 'w') as f:
         f.write('2\n')
         f.write(f'{n}\n')
         for x,y in dataset:
             f.write(f'{x} {y}\n')
 
-logging.info(f'AFTER DBSCAN, average dataset size is {total_n_without_outliers/min(MAX_NO_DATASETS,len(datasets_without_outliers))}')
+logging.info(f'Average MedicalB dataset size is {total_input_pointsB/min(MAX_NO_DATASETS,len(medicalB))}')

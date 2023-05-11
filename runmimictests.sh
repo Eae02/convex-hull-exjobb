@@ -1,29 +1,30 @@
 #!/bin/bash
 
-# Make sure to run createtests.sh first
+# Make sure to put tests in .mimicdata/medical{A/B} first
+# Use scripts and instructions in mimic-extraction folder.
 
 implementation=$@
 
-touch .mimicdata/with_outliers/times.txt
-for f in .mimicdata/with_outliers/*.in; do
+touch .mimicdata/timesA.txt
+for f in .mimicdata/medicalA/*.in; do
     # echo $f
     pre=${f%.in}
     out=$pre.out
-    ./ch.bin $implementation < $f > $out 2>> .mimicdata/with_outliers/times.txt
+    ./ch.bin $implementation < $f > $out 2>> .mimicdata/timesA.txt
 done
-echo "With outliers done"
-python3 testtools/analyze_times.py 12438 < .mimicdata/with_outliers/times.txt
-rm .mimicdata/with_outliers/times.txt
+echo "MedicalA done"
+python3 testtools/analyze_times.py 11839 < .mimicdata/timesA.txt
+rm .mimicdata/timesA.txt
 
-touch .mimicdata/without_outliers/times.txt
-for f in .mimicdata/without_outliers/*.in; do
+touch .mimicdata/timesB.txt
+for f in .mimicdata/medicalB/*.in; do
     # echo $f
     pre=${f%.in}
     out=$pre.out
-    ./ch.bin $implementation < $f > $out 2>> .mimicdata/without_outliers/times.txt
+    ./ch.bin $implementation < $f > $out 2>> .mimicdata/timesB.txt
 done
-echo "Without outliers done"
-python3 testtools/analyze_times.py 12418.663 < .mimicdata/without_outliers/times.txt
-rm .mimicdata/without_outliers/times.txt
+echo "MedicalB done"
+python3 testtools/analyze_times.py 13037 < .mimicdata/timesB.txt
+rm .mimicdata/timesB.txt
 
 echo "Done running all tests on $implementation"
