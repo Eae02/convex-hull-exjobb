@@ -9,15 +9,15 @@ eps = 10**-204  # Smallest angle that we allow
 cutoff_quadratic_est = 10**-2 # 1-cos will have bad precision for small angles.
 
 points = []
-n = 100000    
+n = 1000000  
 
 angle = math.pi/2
 while abs(angle) > eps:
-    x = math.sin(angle)
+    x = -math.sin(angle)
     if abs(angle) > cutoff_quadratic_est:
-        y = S*(1 - math.cos(angle))
+        y = -S*(1 - math.cos(angle))
     else:
-        y = S*angle*angle/2
+        y = -S*angle*angle/2
     points.append((x,y))
     angle *= factor
 
