@@ -13,6 +13,17 @@
 struct ParallelData {
 	std::mutex lock;
 	std::list<std::thread> threads;
+	
+	template <typename CB>
+	void maybeRunInParallel(bool parallel, CB callback) {
+		if (parallel) {
+			lock.lock();
+			threads.emplace_back(callback);
+			lock.unlock();
+		} else {
+			callback();
+		}
+	}
 };
 
 template <qhPartitionStrategy S, typename T>
@@ -36,16 +47,10 @@ void quickhullRecPar(
 	
 	auto [rightSubspan, leftSubspan] = quickhullPartitionPoints<S, T>(pts, leftHullPoint, rightHullPoint, maxPointIdx);
 	
-	if (remParallelDepth > 0) {
-		pdata.lock.lock();
-		auto pdataPtr = &pdata;
-		pdata.threads.emplace_back([=] {
-			quickhullRecPar<S, T>(rightSubspan, maxPoint, rightHullPoint, remParallelDepth - 1, *pdataPtr);
-		});
-		pdata.lock.unlock();
-	} else {
-		quickhullRecPar<S, T>(rightSubspan, maxPoint, rightHullPoint, remParallelDepth - 1, pdata);
-	}
+	auto pdataPtr = &pdata;
+	pdata.maybeRunInParallel(remParallelDepth > 0, [=] {
+		quickhullRecPar<S, T>(rightSubspan, maxPoint, rightHullPoint, remParallelDepth - 1, *pdataPtr);
+	});
 	
 	quickhullRecPar<S, T>(leftSubspan, leftHullPoint, maxPoint, remParallelDepth - 1, pdata);
 }
@@ -67,15 +72,15 @@ void runQuickhullPar(std::vector<point<T>>& pts) {
 	std::swap(pts.back(), *belowPointsEndIt);
 	
 	ParallelData pdata;
-	int remParallelDepth = 0;
 	
-	int maxThreads = getImplArgInt("T").value_or(static_cast<int>(std::thread::hardware_concurrency()));
+	int maxThreads = std::max(1, getImplArgInt("T").value_or(static_cast<int>(std::thread::hardware_concurrency())));
+	int remParallelDepth = floor(log2(static_cast<double>(maxThreads)));
 	
-	while ((1 << remParallelDepth) <= maxThreads)
-		remParallelDepth++;
+	pdata.maybeRunInParallel(remParallelDepth > 0, [&] {
+		quickhullRecPar<S, T>(std::span<point<T>>(&pts[1], &*belowPointsEndIt), rightmostPt, leftmostPt, remParallelDepth - 1, pdata);
+	});
 	
-	quickhullRecPar<S, T>(std::span<point<T>>(&pts[1], &*belowPointsEndIt), rightmostPt, leftmostPt, remParallelDepth, pdata);
-	quickhullRecPar<S, T>(std::span<point<T>>(&*belowPointsEndIt + 1, pts.data() + pts.size()), leftmostPt, rightmostPt, remParallelDepth, pdata);
+	quickhullRecPar<S, T>(std::span<point<T>>(&*belowPointsEndIt + 1, pts.data() + pts.size()), leftmostPt, rightmostPt, remParallelDepth - 1, pdata);
 	
 	while (true) {
 		std::unique_lock<std::mutex> lg(pdata.lock);

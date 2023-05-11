@@ -19,7 +19,7 @@ RUNS = 5
 IMPL_NAME = "qh_recpar_nxp"
 PARAM_NAME = "T"
 PARAM_LABEL = "number of threads"
-PARAM_RANGE = [0, 1, 2, 4, 8, 16, 32, 64, 128]
+PARAM_RANGE = [1, 2, 4, 8, 16, 32, 64, 128]
 
 import testlib
 import sys
@@ -38,6 +38,7 @@ def plot(data, name):
 	ax.set_xlabel(PARAM_LABEL or PARAM_NAME)
 	ax.set_ylabel("time (ms)")
 	ax.set_xticks([m[0] for m in measurements])
+	ax.set_xscale("log", base=2)
 	ax.grid(True)
 	plt.legend()
 	plt.savefig("results/" + name)
