@@ -34,7 +34,7 @@ static void runChanId3(std::vector<point<T>>& pts1, size_t exponent, bool use_id
     bool pts1_has_spans = true;
     while (spans.size() > 1) {
         t++;
-        m = calcM(t, use_idea_2);
+        m = calcM(t);
         while (current_set_size < m && spans.size() > 1) {
             pairwiseMerge(spans, exponent, *b); // Move spans from a to b
             a->clear();
@@ -44,7 +44,7 @@ static void runChanId3(std::vector<point<T>>& pts1, size_t exponent, bool use_id
         }
         if (spans.size() == 1) break; // Early break to avoid unnecessary computations
 
-        long long H = calcH(t);
+        long long H = calcH(t, use_idea_2); // 2^2^t or 2^(2^t-t)
         if (Merge2DHulls(spans, *b, H) > -1) {
             pts1_has_spans = !pts1_has_spans;
             if (!pts1_has_spans) {
@@ -62,7 +62,7 @@ static void runChanId3(std::vector<point<T>>& pts1, size_t exponent, bool use_id
 }
 
 DEF_HULL_IMPL({
-	.name = "chan_idea3", // Something like O(n loglog m) expected time on randomized inputs.
+	.name = "chan_widea3", // Something like O(n loglog m) expected time on randomized inputs.
 	.runInt = std::bind(runChanId3<int64_t>, std::placeholders::_1, 3, false),
 	.runDouble = std::bind(runChanId3<double>, std::placeholders::_1, 3, false),
 });

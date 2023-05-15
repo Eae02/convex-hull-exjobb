@@ -137,18 +137,15 @@ inline void pairwiseMerge(std::vector<std::span<point<T>>>& spans, size_t expone
     spans = std::move(output);
 }
 
-inline long long calcH(long long t) {
+inline long long calcM(long long t) {
     long long exponent = std::min(40LL, 1LL << t);
     return 1LL << exponent;
 }
 
-inline long long calcM(long long t, bool use_idea_2 = false) {
+inline long long calcH(long long t, bool use_idea_2 = false) {
     if (!use_idea_2) {
-        return calcH(t);
+        return calcM(t);
     }
-    long long exponent = std::min(40LL, 1LL << t);
-    long long H = calcH(t);
-    long long m = H*exponent;
-    assert(m > H); // Check for overflows
-    return m;
+    long long exponent = std::min(40LL, (1LL << t) - t);
+    return 1LL << exponent;
 }

@@ -53,14 +53,14 @@ static void runMergeHull(std::vector<point<T>>& pts1, size_t exponent, bool redu
 }
 
 DEF_HULL_IMPL({
-	.name = "merge_hull",
+	.name = "merge_hull_old",
 	.runInt = std::bind(runMergeHull<int64_t>, std::placeholders::_1, 3, false),
 	.runDouble = std::bind(runMergeHull<double>, std::placeholders::_1, 3, false),
 });
 
 
 DEF_HULL_IMPL({
-	.name = "merge_hull_reduce_copy",
+	.name = "merge_hull",
 	.runInt = std::bind(runMergeHull<int64_t>, std::placeholders::_1, 3, true),
 	.runDouble = std::bind(runMergeHull<double>, std::placeholders::_1, 3, true),
 });

@@ -44,8 +44,8 @@ static void runChan(std::vector<point<T>>& pts, bool use_idea_1, bool use_idea_2
 	if (pts.size() <= 2) return;
     long long t = 3;
     while (true) {
-        long long H = calcH(t); // 2ˆ2ˆt 
-        long long m = calcM(t, use_idea_2); // 2ˆ2ˆt (*2ˆt if use_idea_2) 
+        long long H = calcH(t, use_idea_2); // 2ˆ2ˆt (/2ˆt if use_idea_2) 
+        long long m = calcM(t); // 2ˆ2ˆt
         // Refinement idea 2 from chans paper, put m = H*logH
         if (Hull2D(pts, m, H, use_idea_1)) {
             return;
@@ -55,25 +55,25 @@ static void runChan(std::vector<point<T>>& pts, bool use_idea_1, bool use_idea_2
 }
 
 DEF_HULL_IMPL({
-	.name = "chan_plain",
+	.name = "chan",
 	.runInt = std::bind(runChan<int64_t>, std::placeholders::_1, false, false),
 	.runDouble = std::bind(runChan<double>, std::placeholders::_1, false, false)
 });
 
 DEF_HULL_IMPL({
-	.name = "chan_idea1",
+	.name = "chan_widea1",
 	.runInt = std::bind(runChan<int64_t>, std::placeholders::_1, true, false),
 	.runDouble = std::bind(runChan<double>, std::placeholders::_1, true, false)
 });
 
 DEF_HULL_IMPL({
-	.name = "chan_idea2",
+	.name = "chan_widea2",
 	.runInt = std::bind(runChan<int64_t>, std::placeholders::_1, true, true),
 	.runDouble = std::bind(runChan<double>, std::placeholders::_1, true, true)
 });
 
 DEF_HULL_IMPL({
-	.name = "chan_idea12",
+	.name = "chan_widea12",
 	.runInt = std::bind(runChan<int64_t>, std::placeholders::_1, true, true),
 	.runDouble = std::bind(runChan<double>, std::placeholders::_1, true, true)
 });
