@@ -16,7 +16,10 @@ num_colors = 20
                         #(3,1)     #(5,1,1,1) 
 linestyles = ['solid', 'dashed', 'dashdot', (0,(10,3)), (0,(5,1)), (0,(8,1)), (0,(10,1)), (0,(3,1,1,1)), (0,(3,1,1,1,1,1)), (0,(8,1,1,1)), (0,(5,1,3,1))]
 
-def plot_results(file_name = 'results/times.csv'):
+def plot_results(file_name = 'results/times.csv', label_colors  = None):
+    #label_colors = {'chan_plain':('chan_plain','red'), 'chan_refined': ('chan_refined','orange'), 'merge_hull_reduce_copy': ('merge_hull','blue')}
+    #label_colors = {'chan_refined': ('chan_refined','orange'), 'mc': ('monotone_chain','blue'), 'qh_rec_esx': ('depth_quickhull_sort_initially','red'), 'qh_rec_ss': ('depth_quickhull_single_scan','pink'), 'qh_bf_ss': ('breadth_quickhull_single_scan','purple')}
+    label_colors = {'chan_plain':('chan_plain','red'), 'chan_refined': ('chan_refined','orange'), 'merge_hull_reduce_copy': ('merge_hull','blue'), 'merge_hull_chan_trick' : ('merge_hull_chan_trick', 'green'), 'chan_idea2':('chan_idea2','magenta')}
 
     df = pd.read_csv(file_name)
 
@@ -28,11 +31,15 @@ def plot_results(file_name = 'results/times.csv'):
     print(square_times.columns)
     fig, ax = plt.subplots(figsize=(16,12))
     for label, df_2 in square_times.groupby(['implementation_name']):
-        df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, color = cmap((myHash(label)%num_colors)/float(num_colors)), linestyle = linestyles[myHash(label)%len(linestyles)])
-    plt.title("Running time for different planar convex hull algorithms on square dataset.")
+        if label_colors == None:
+            df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, color = cmap((myHash(label)%num_colors)/float(num_colors)), linestyle = linestyles[myHash(label)%len(linestyles)])
+        elif label in label_colors:
+            label,color = label_colors[label]
+            df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, color = color)
+    plt.title("Running time for different planar convex hull algorithms on square dataset on POWER")
     plt.ylabel("Computation time per input point (us)")
     plt.legend(handlelength = 10)
-    ax.set_ylim(ymin=0, ymax = min(1, 1.05 * square_times['time_per_point'].max()))
+    ax.set_ylim(ymin=0, ymax = min(0.3, 1.05 * square_times['time_per_point'].max()))
     plt.savefig('results/square_plot')
 
     # Plot from circle dataset
@@ -43,11 +50,15 @@ def plot_results(file_name = 'results/times.csv'):
     print(circ_times.columns)
     fig, ax = plt.subplots(figsize=(16,12))
     for label, df_2 in circ_times.groupby(['implementation_name']):
-        df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, color = cmap((myHash(label)%num_colors)/float(num_colors)), linestyle = linestyles[myHash(label)%len(linestyles)])
-    plt.title("Running time for different planar convex hull algorithms on circ dataset.")
+        if label_colors == None:
+            df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, color = cmap((myHash(label)%num_colors)/float(num_colors)), linestyle = linestyles[myHash(label)%len(linestyles)])
+        elif label in label_colors:
+            label,color = label_colors[label]
+            df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, color = color)
+    plt.title("Running time for different planar convex hull algorithms on circle dataset on POWER")
     plt.ylabel("Computation time per input point (us)")
     plt.legend(handlelength = 10)
-    ax.set_ylim(ymin=0, ymax = min(2.5, 1.05 * circ_times['time_per_point'].max()))
+    ax.set_ylim(ymin=0, ymax = min(1, 1.05 * circ_times['time_per_point'].max()))
     plt.savefig('results/circ_plot')
 
     # Plot from disk dataset
@@ -59,11 +70,15 @@ def plot_results(file_name = 'results/times.csv'):
 
     fig, ax = plt.subplots(figsize=(16,12))
     for label, df_2 in disk_times.groupby(['implementation_name']):
-        df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, color = cmap((myHash(label)%num_colors)/float(num_colors)), linestyle = linestyles[myHash(label)%len(linestyles)])
-    plt.title("Running time for different planar convex hull algorithms on disk dataset.")
+        if label_colors == None:
+            df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, color = cmap((myHash(label)%num_colors)/float(num_colors)), linestyle = linestyles[myHash(label)%len(linestyles)])
+        elif label in label_colors:
+            label,color = label_colors[label]
+            df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, color = color)
+    plt.title("Running time for different planar convex hull algorithms on disk dataset on POWER")
     plt.ylabel("Computation time per input point (us)")
     plt.legend(handlelength = 10)
-    ax.set_ylim(ymin=0, ymax = min(1, 1.05 * disk_times['time_per_point'].max()))
+    ax.set_ylim(ymin=0, ymax = min(0.35, 1.05 * disk_times['time_per_point'].max()))
     plt.savefig('results/disk_plot')
 
 if __name__ == "__main__":

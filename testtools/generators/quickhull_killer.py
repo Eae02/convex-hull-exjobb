@@ -1,22 +1,23 @@
 import math
-S = 10**305     # stretch in x direction
-factor = 0.618  # 1/golden ratio rounded down slightly
+#Numerically stable quickhull killer, but doesn't recieve same depth.
+
+S = 10**305     # stretch in y direction
+factor = -0.5698   # Best factor is -0.5698. Solution to x^4+x^2+x-1 = 0 is 0.56984...
 eps = 10**-204  # Smallest angle that we allow
                 # We want epsˆ3 * S to still be representable by double
 
-cutoff_quadratic_est = 10**-2 # 1-cos will just become 0 for small angles.
+cutoff_quadratic_est = 10**-2 # 1-cos will have bad precision for small angles.
 
 points = []
-n = 1000000
+n = 1000000  
 
-points.append((0.0,0.0))
 angle = math.pi/2
-while angle > eps:
-    y = -math.sin(angle) # For some reason this makes qh get the correct answer. Positive y makes qh fail. Don't know why. Other algs get correct for positive y
-    if angle > cutoff_quadratic_est:
-        x = S*(1 - math.cos(angle))
+while abs(angle) > eps:
+    x = -math.sin(angle)
+    if abs(angle) > cutoff_quadratic_est:
+        y = -S*(1 - math.cos(angle))
     else:
-        x = S*angle*angle/2
+        y = -S*angle*angle/2
     points.append((x,y))
     angle *= factor
 
