@@ -19,9 +19,12 @@ linestyles = ['solid', 'dashed', 'dashdot', (0,(10,3)), (0,(5,1)), (0,(8,1)), (0
 def plot_results(file_name = 'results/times.csv', label_colors  = None):
     #label_colors = {'chan_plain':('chan_plain','red'), 'chan_refined': ('chan_refined','orange'), 'merge_hull_reduce_copy': ('merge_hull','blue')}
     #label_colors = {'chan_refined': ('chan_refined','orange'), 'mc': ('monotone_chain','blue'), 'qh_rec_esx': ('depth_quickhull_sort_initially','red'), 'qh_rec_ss': ('depth_quickhull_single_scan','pink'), 'qh_bf_ss': ('breadth_quickhull_single_scan','purple')}
-    label_colors = {'chan_plain':('chan_plain','red'), 'chan_refined': ('chan_refined','orange'), 'merge_hull_reduce_copy': ('merge_hull','blue'), 'merge_hull_chan_trick' : ('merge_hull_chan_trick', 'green'), 'chan_idea2':('chan_idea2','magenta')}
+    label_colors = {'chan':('chan','red'), 'chan_refined': ('chan_refined','orange'), 'merge_hull': ('merge_hull','blue'), 'merge_hull_chan_trick' : ('merge_hull_chan_trick', 'green')}
 
     df = pd.read_csv(file_name)
+    #Filter out implementations not plotted
+    if label_colors != None:
+        df = df[df.apply(lambda row: row['implementation_name'] in label_colors, axis=1)]
 
     # Plot from square dataset
     square_times = df.loc[df['test_generator']=='gensquare.bin'].drop(columns=['seed','test_generator'])
@@ -39,7 +42,7 @@ def plot_results(file_name = 'results/times.csv', label_colors  = None):
     plt.title("Running time for different planar convex hull algorithms on square dataset on POWER")
     plt.ylabel("Computation time per input point (us)")
     plt.legend(handlelength = 10)
-    ax.set_ylim(ymin=0, ymax = min(0.3, 1.05 * square_times['time_per_point'].max()))
+    ax.set_ylim(ymin=0, ymax = min(0.5, 1.05 * square_times['time_per_point'].max()))
     plt.savefig('results/square_plot')
 
     # Plot from circle dataset
@@ -78,7 +81,7 @@ def plot_results(file_name = 'results/times.csv', label_colors  = None):
     plt.title("Running time for different planar convex hull algorithms on disk dataset on POWER")
     plt.ylabel("Computation time per input point (us)")
     plt.legend(handlelength = 10)
-    ax.set_ylim(ymin=0, ymax = min(0.35, 1.05 * disk_times['time_per_point'].max()))
+    ax.set_ylim(ymin=0, ymax = min(0.75, 1.05 * disk_times['time_per_point'].max()))
     plt.savefig('results/disk_plot')
 
 if __name__ == "__main__":
