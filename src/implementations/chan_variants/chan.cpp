@@ -44,9 +44,9 @@ static void runChan(std::vector<point<T>>& pts, bool use_idea_1, bool use_idea_2
 	if (pts.size() <= 2) return;
     long long t = 3;
     while (true) {
+        // Refinement idea 2 from chans paper, put H = m/logm
         long long H = calcH(t, use_idea_2); // 2ˆ2ˆt (/2ˆt if use_idea_2) 
         long long m = calcM(t); // 2ˆ2ˆt
-        // Refinement idea 2 from chans paper, put m = H*logH
         if (Hull2D(pts, m, H, use_idea_1)) {
             return;
         }
@@ -68,8 +68,8 @@ DEF_HULL_IMPL({
 
 DEF_HULL_IMPL({
 	.name = "chan_widea2",
-	.runInt = std::bind(runChan<int64_t>, std::placeholders::_1, true, true),
-	.runDouble = std::bind(runChan<double>, std::placeholders::_1, true, true)
+	.runInt = std::bind(runChan<int64_t>, std::placeholders::_1, false, true),
+	.runDouble = std::bind(runChan<double>, std::placeholders::_1, false, true)
 });
 
 DEF_HULL_IMPL({
