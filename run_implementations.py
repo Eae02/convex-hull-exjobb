@@ -11,6 +11,7 @@ def run_implementations(implementations : List[str]):
     results = [] # Table of results containing: implementation_name, test_generator, seed, n, compute_time
     subprocess.run(['mkdir', 'results'])
     test_case_path = '.testcases/tmp.in'
+    binary_test_case_path = '.testcases/tmp_bin.in'
     with open('results/times.csv','w') as f:
         f.write("implementation_name,test_generator,seed,n,compute_time(ms)\n")
 
@@ -24,15 +25,22 @@ def run_implementations(implementations : List[str]):
                     with open(test_case_path,'w') as test_case_file: 
                         bash_command = [f'./testtools/{test_generator}', f'seed={seed}', f'n={n}']
                         subprocess.run(bash_command, stdout = test_case_file)
+                    with open(binary_test_case_path,'w') as test_case_file: 
+                        bash_command = [f'./testtools/{test_generator}', f'seed={seed}', f'n={n}', f'bin=1']
+                        subprocess.run(bash_command, stdout = test_case_file)
 
                     for implementation_name in implementations:
                         if implementation_name in timed_out:
                             continue
                         try:
                             time_limit = max(3, 2*n/1000000) #3 seconds or 2 us per input point
-                            compute_time = testlib.run(test_case_path, implementation_name, timeout = time_limit) 
+                            if implementation_name != 'qhull':
+                                compute_time = testlib.run(binary_test_case_path, implementation_name, timeout = 2*time_limit) 
+                            else:
+                                compute_time = testlib.run(test_case_path, implementation_name, timeout = time_limit) 
                         except subprocess.TimeoutExpired:
                             timed_out.add(implementation_name)
+                            print(f'{implementation_name} has timed out on {test_generator} wiht n={n}')
                             continue
                         #print(test_generator,n,seed,implementation_name,compute_time)
                         results.append((implementation_name, test_generator, seed, n, compute_time))
