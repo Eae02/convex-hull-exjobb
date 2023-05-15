@@ -1,10 +1,10 @@
 import subprocess
 import os
 
-def runQhull(inputFile):
+def runQhull(inputFile, timeout = 10):
 	command = ['qhull']
 	with open(inputFile, "r") as f:
-		proc = subprocess.run(command, stdin=f, stderr=subprocess.PIPE, stdout=subprocess.PIPE, timeout = 10)
+		proc = subprocess.run(command, stdin=f, stderr=subprocess.PIPE, stdout=subprocess.PIPE, timeout = timeout)
 		output = proc.stdout.decode("utf-8")
 	computeTime = None
 	for line in output.split("\n"):
@@ -12,12 +12,12 @@ def runQhull(inputFile):
 			computeTime = float(line.split(":")[1])*1000 #convert to ms
 	return computeTime
 
-def run(inputFile, implementation, extraArgs=[]):
+def run(inputFile, implementation, extraArgs=[], timeout = 10):
 	if implementation == "qhull":
-		return runQhull(inputFile)
+		return runQhull(inputFile, timeout)
 	command = ['./ch.bin', '-q', implementation] + extraArgs
 	with open(inputFile, "r") as f:
-		proc = subprocess.run(command, stdin=f, stderr=subprocess.PIPE, stdout=subprocess.PIPE, timeout = 10)
+		proc = subprocess.run(command, stdin=f, stderr=subprocess.PIPE, stdout=subprocess.PIPE, timeout = timeout)
 		output = proc.stderr.decode("utf-8")
 	computeTime = None
 	for line in output.split("\n"):
