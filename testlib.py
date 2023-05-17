@@ -1,5 +1,14 @@
 import subprocess
-import os
+import os, sys
+
+def getcmdarg(name, default=None):
+	for i in range(1, len(sys.argv)):
+		if sys.argv[i].startswith(f"-{name}="):
+			return sys.argv[i].split("=", maxsplit=1)[1]
+	if default is None:
+		print(f"missing command line argument -{name}")
+		exit(1)
+	return default
 
 def runQhull(inputFile, timeout = 10):
 	command = ['qhull']
