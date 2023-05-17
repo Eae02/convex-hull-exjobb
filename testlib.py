@@ -12,10 +12,12 @@ def runQhull(inputFile, timeout = 10):
 			computeTime = float(line.split(":")[1])*1000 #convert to ms
 	return computeTime
 
-def run(inputFile, implementation, extraArgs=[], timeout = 10):
+def run(inputFile, implementation, extraArgs=[], timeout = 10, maxThreads=None):
 	if implementation == "qhull":
 		return runQhull(inputFile, timeout)
 	command = ['./ch.bin', '-q', implementation] + extraArgs
+	if maxThreads is not None:
+		command = ["taskset", "--cpu-list", "0-" + str(maxThreads - 1)] + command
 	with open(inputFile, "r") as f:
 		proc = subprocess.run(command, stdin=f, stderr=subprocess.PIPE, stdout=subprocess.PIPE, timeout = timeout)
 		output = proc.stderr.decode("utf-8")
@@ -25,7 +27,7 @@ def run(inputFile, implementation, extraArgs=[], timeout = 10):
 			computeTime = float(line.split(":")[1][:-2])
 	return computeTime
 
-def runOnAllFiles(datasets, implementation, runs=1, datasetSize="large", extraArgs=[]):
+def runOnAllFiles(datasets, implementation, runs=1, datasetSize="large", extraArgs=[], maxThreads=None):
 	if type(datasets) != type([]):
 		datasets = [datasets]
 	times = []
@@ -34,6 +36,6 @@ def runOnAllFiles(datasets, implementation, runs=1, datasetSize="large", extraAr
 		files = list(filter(lambda f: f.endswith(".in"), os.listdir(dirpath)))
 		for r in range(runs):
 			for file in files:
-				time = run(dirpath + "/" + file, implementation, extraArgs)
+				time = run(dirpath + "/" + file, implementation, extraArgs, maxThreads=maxThreads)
 				times.append(time)
 	return sum(times) / len(times)
