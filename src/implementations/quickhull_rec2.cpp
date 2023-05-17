@@ -30,35 +30,29 @@ static void quickhullRec2(std::span<point<T>> pts, point<T> maxPoint, point<T> l
 	size_t numPointsRight = 0;
 	size_t numPointsNotLeft = pts.size();
 	for (size_t i = numPointsRight; i < numPointsNotLeft;) {
-		if ((pts[i].x < maxPoint.x) ^ upperHull) {
-			T dot = normalR.dot(pts[i] - maxPoint);
-			if (dot > 0) {
-				if (std::tie(dot, pts[i]) > std::tie(maxPointDistR, maxPointR)) {
-					maxPointDistR = dot;
-					maxPointR = pts[i];
-				}
-				if (numPointsRight != i) {
-					std::swap(pts[numPointsRight], pts[i]);
-				}
-				numPointsRight++;
-				i++;
-				continue;
+		T dot = normalR.dot(pts[i] - maxPoint);
+		if (dot > 0) {
+			if (std::tie(dot, pts[i]) > std::tie(maxPointDistR, maxPointR)) {
+				maxPointDistR = dot;
+				maxPointR = pts[i];
+			}
+			if (numPointsRight != i) {
+				std::swap(pts[numPointsRight], pts[i]);
+			}
+			numPointsRight++;
+			i++;
+		} else if ((dot = normalL.dot(pts[i] - leftHullPoint)) > 0) {
+			if (std::tie(dot, pts[i]) > std::tie(maxPointDistL, maxPointL)) {
+				maxPointDistL = dot;
+				maxPointL = pts[i];
+			}
+			numPointsNotLeft--;
+			if (numPointsNotLeft != i) {
+				std::swap(pts[numPointsNotLeft], pts[i]);
 			}
 		} else {
-			T dot = normalL.dot(pts[i] - leftHullPoint);
-			if (dot > 0) {
-				if (std::tie(dot, pts[i]) > std::tie(maxPointDistL, maxPointL)) {
-					maxPointDistL = dot;
-					maxPointL = pts[i];
-				}
-				numPointsNotLeft--;
-				if (numPointsNotLeft != i) {
-					std::swap(pts[numPointsNotLeft], pts[i]);
-				}
-				continue;
-			}
+			pts[i++] = point<T>::notOnHull;
 		}
-		pts[i++] = point<T>::notOnHull;
 	}
 	
 	pts[numPointsRight] = maxPoint;
