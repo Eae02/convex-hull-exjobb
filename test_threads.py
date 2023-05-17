@@ -7,7 +7,7 @@ import math
 
 implName = testlib.getcmdarg("i")
 
-maxThreadsLog = int(testlib.getcmdarg("lt", 0))
+maxThreadsLog = int(testlib.getcmdarg("lt", -1))
 
 if "-t80" in sys.argv:
 	threads = [1, 2, 3, 4, 5, 6, 7, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80]
