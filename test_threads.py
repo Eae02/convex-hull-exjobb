@@ -16,8 +16,11 @@ def getcmdarg(name, default=None):
 
 implName = getcmdarg("i")
 
-maxThreadsLog = int(getcmdarg("lt", -1))
-if maxThreadsLog != -1:
+maxThreadsLog = int(getcmdarg("lt", 0))
+
+if "-t80" in sys.argv:
+	threads = [1, 2, 3, 4, 5, 6, 7, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80]
+elif maxThreadsLog != -1:
 	threads = [2 ** i for i in range(math.floor(math.log2(maxThreadsLog)) + 1)]
 else:
 	maxThreads = int(getcmdarg("t", 8))
