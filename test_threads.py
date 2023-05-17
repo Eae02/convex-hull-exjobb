@@ -27,9 +27,9 @@ measurements = []
 for dataset in DATASETS:
 	measurements.append([])
 	for mi, th in enumerate(threads):
-		print(f"running {implName} on {dataset} with {th} threads...", end="", flush=True)
+		print(f"running {implName} on {dataset} with {th} threads...", end="", flush=True, file=sys.stderr)
 		t = testlib.runOnAllFiles([dataset], implName, runs=RUNS, maxThreads=th)
-		print(f" done! ({t:.2f}ms)")
+		print(f" done! ({t:.2f}ms)", file=sys.stderr)
 		measurements[-1].append(t)
 
 print("data\t" + "\t".join(map(str, threads)))
