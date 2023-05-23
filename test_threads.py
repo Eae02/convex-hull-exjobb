@@ -1,9 +1,11 @@
 DATASETS = ["circle", "disk", "square"]
-RUNS = 5
+METRIC = "cacheMisses"
 
 import testlib
 import sys
 import math
+
+runs = int(testlib.getcmdarg("r", 5))
 
 implName = testlib.getcmdarg("i")
 
@@ -22,8 +24,8 @@ for dataset in DATASETS:
 	measurements.append([])
 	for mi, th in enumerate(threads):
 		print(f"running {implName} on {dataset} with {th} threads...", end="", flush=True, file=sys.stderr)
-		t = testlib.runOnAllFiles([dataset], implName, runs=RUNS, maxThreads=th)
-		print(f" done! ({t:.2f}ms)", file=sys.stderr)
+		t = testlib.runOnAllFiles([dataset], implName, runs=runs, maxThreads=th, metric=METRIC)
+		print(f" done! ({t:.2f})", file=sys.stderr)
 		measurements[-1].append(t)
 
 print("data\t" + "\t".join(map(str, threads)))

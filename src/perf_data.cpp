@@ -11,5 +11,5 @@ void PerfData::end() {
 }
 
 void PerfData::printStatistics() {
-	std::cerr << "compute time: " << std::chrono::duration<double, std::milli>(endTime - startTime).count() << "ms\n";
+	std::cerr << "compute time: " << std::chrono::duration<double, std::milli>(endTime - startTime).count() << " ms\n";
 }

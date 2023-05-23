@@ -68,7 +68,7 @@ void readRunAndOutput(uint64_t numPoints, std::function<void(std::vector<point<T
 		}
 	}
 	
-	std::cerr << "elapsed time: " << std::chrono::duration<double, std::milli>(endTime - beforeTime).count() << "ms\n";
+	std::cerr << "elapsed time: " << std::chrono::duration<double, std::milli>(endTime - beforeTime).count() << " ms\n";
 }
 
 template <typename T>
