@@ -8,6 +8,7 @@ def run_implementations(implementations : List[str]):
     test_cases = [("gencirc.bin",[(100,20),(200,20),(500,20),(1000,20),(2000,20),(5000,20),(10000,20),(20000,10),(50000,10),(100000,10),(200000,5),(500000,5),(1000000,5),(2000000,5),(5000000,5),(10000000,5)])] #test_generator,[n,num_iterations]
     test_cases.extend([("gensquare.bin",[(100,20),(200,20),(500,20),(1000,20),(2000,20),(5000,20),(10000,20),(20000,10),(50000,10),(100000,10),(200000,5),(500000,5),(1000000,5),(2000000,5),(5000000,5),(10000000,5)])])
     test_cases.extend([("gendisk.bin",[(100,20),(200,20),(500,20),(1000,20),(2000,20),(5000,20),(10000,20),(20000,10),(50000,10),(100000,10),(200000,5),(500000,5),(1000000,5),(2000000,5),(5000000,5),(10000000,5)])])
+    test_cases.extend([("genmergekiller.bin",[(100,20),(200,20),(500,20),(1000,20),(2000,20),(5000,20),(10000,20),(20000,10),(50000,10),(100000,10),(200000,5),(500000,5),(1000000,5),(2000000,5),(5000000,5),(10000000,5)])])
     results = [] # Table of results containing: implementation_name, test_generator, seed, n, compute_time
     subprocess.run(['mkdir', 'results'])
     test_case_path = '.testcases/tmp.in'
@@ -66,10 +67,12 @@ def main():
     # implementations = ["cgal_akl_toussaint", "cgal_graham", "chan_plain", "chan_refined", "merge_hull_reduce_copy", "dc_preparata_hong_rewrite", "impl1", "impl1_par", "qh_rec", "qh_recpar", "qh_avx"]
 
     # All interesting implementations for our thesis
-    implementations = ["chan", "chan_refined", "dc_preparata_hong", "impl1", "mc", "merge_hull", "merge_hull_chan_trick", "ouellet", "qh_bf_nxp", "qh_bf_ss", "qh_bf_xp", "qh_hybrid_esx", "qh_hybrid_jw", "qh_hybrid_mc", "qh_rec_esx", "qh_rec_nxp", "qh_rec_ss", "qh_rec_xp", "qh_rec_xyp", "qh_soa"]
+    implementations = ["chan", "chan_refined", "mc", "merge_hull", "merge_hull_chan_trick", "qh_bf_nxp", "qh_bf_ss", "qh_bf_xp", "qh_hybrid_esx", "qh_hybrid_jw", "qh_hybrid_mc", "qh_rec_esx", "qh_rec_nxp", "qh_rec_ss", "qh_rec_xp", "qh_rec_xyp", "qh_soa"]
     implementations.extend(["cgal_akl_toussaint","cgal_bykat", "cgal_eddy", "cgal_graham", "cgal_jarvis", "qhull"])
-    implementations.extend(["jarvis_wrap"])
-    implementations.extend(["impl1_par", "qh_recpar_nxp", "qh_recpar_xp", "qhp_bf", "qhp_bf_nr", "qhp_bf_seq"])
+    #implementations.extend(["dc_preparata_hong", "impl1", "ouellet", "jarvis_wrap"])
+    #implementations.extend(["impl1_par", "qh_recpar_nxp", "qh_recpar_xp", "qhp_bf", "qhp_bf_nr", "qhp_bf_seq"])
+    
+    
     # implementations = ["qh_rec", "qh_rec_nxp", "qh_rec_esx", "qh_hybrid_esx:D1", "qh_hybrid_esx:D2", "qh_hybrid_esx:D3"]
     # implementations = ["qh_rec", "qh_bf"]
 

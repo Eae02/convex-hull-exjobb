@@ -13,15 +13,15 @@
 template <typename T>
 static void runMergeHullChanTrick(std::vector<point<T>>& pts1, size_t exponent) {
 	if (pts1.size() <= 1) return;
-    long long current_set_size = 1LL << 8;// Start with sets of size 2^8
+    long long current_set_size = 1LL << 0;// Start with sets of size 2^8
     long long numsets = (pts1.size() + current_set_size - 1)/current_set_size; // Number of partitions, ceil(n/m)
     std::vector<std::span<point<T>>> spans;
     for (long long i = 0; i < numsets; i++) {
         long long start = i*current_set_size;
         long long end = std::min((i+1)*current_set_size, (long long) pts1.size());
         std::span<point<T>> current_span = std::span<point<T>>(pts1.begin()+start,pts1.begin()+end);
-        long long newsize = monotone_chain(current_span);
-        current_span = current_span.subspan(0,newsize);
+        // long long newsize = monotone_chain(current_span);
+        // current_span = current_span.subspan(0,newsize);
         spans.push_back(current_span);
     }
     std::vector<point<T>> pts2; 
@@ -55,6 +55,6 @@ static void runMergeHullChanTrick(std::vector<point<T>>& pts1, size_t exponent) 
 
 DEF_HULL_IMPL({
 	.name = "merge_hull_chan_trick", // O(n) expected time on randomized inputs.
-	.runInt = std::bind(runMergeHullChanTrick<int64_t>, std::placeholders::_1, 3),
-	.runDouble = std::bind(runMergeHullChanTrick<double>, std::placeholders::_1, 3),
+	.runInt = std::bind(runMergeHullChanTrick<int64_t>, std::placeholders::_1, 2),
+	.runDouble = std::bind(runMergeHullChanTrick<double>, std::placeholders::_1, 2),
 });

@@ -14,7 +14,7 @@
 template <typename T>
 static void runMergeHull(std::vector<point<T>>& pts1, size_t exponent, bool reduce_copy) {
 	if (pts1.size() <= 1) return;
-    long long startsize = 1 << 8; // Start with sets of size 2^8
+    long long startsize = 1 << 0; // Start with sets of size 2^8
 
     long long numsets = (pts1.size() + startsize - 1)/startsize; // Number of partitions, ceil(n/m)
     std::vector<std::span<point<T>>> spans;
@@ -22,8 +22,8 @@ static void runMergeHull(std::vector<point<T>>& pts1, size_t exponent, bool redu
         long long start = i*startsize;
         long long end = std::min((i+1)*startsize, (long long) pts1.size());
         std::span<point<T>> current_span = std::span<point<T>>(pts1.begin()+start,pts1.begin()+end);
-        long long newsize = monotone_chain(current_span);
-        current_span = current_span.subspan(0,newsize);
+        // long long newsize = monotone_chain(current_span);
+        // current_span = current_span.subspan(0,newsize);
         spans.push_back(current_span);
     }
     if (reduce_copy) { // Allocate 2 vectors, and alternatively read from one and write to the other. Less copying of data
@@ -61,6 +61,6 @@ DEF_HULL_IMPL({
 
 DEF_HULL_IMPL({
 	.name = "merge_hull",
-	.runInt = std::bind(runMergeHull<int64_t>, std::placeholders::_1, 3, true),
-	.runDouble = std::bind(runMergeHull<double>, std::placeholders::_1, 3, true),
+	.runInt = std::bind(runMergeHull<int64_t>, std::placeholders::_1, 2, true),
+	.runDouble = std::bind(runMergeHull<double>, std::placeholders::_1, 2, true),
 });

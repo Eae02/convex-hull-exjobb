@@ -13,7 +13,7 @@
 template <typename T>
 static void runChanId3(std::vector<point<T>>& pts1, size_t exponent, bool use_idea_2 = false) {
 	if (pts1.size() <= 1) return;
-    long long t = 3;
+    long long t = -1;
     long long m = 1LL << (1LL << t); // Start with sets of size 2^8
     long long current_set_size = m;
 
@@ -23,8 +23,8 @@ static void runChanId3(std::vector<point<T>>& pts1, size_t exponent, bool use_id
         long long start = i*current_set_size;
         long long end = std::min((i+1)*current_set_size, (long long) pts1.size());
         std::span<point<T>> current_span = std::span<point<T>>(pts1.begin()+start,pts1.begin()+end);
-        long long newsize = monotone_chain(current_span);
-        current_span = current_span.subspan(0,newsize);
+        // long long newsize = monotone_chain(current_span);
+        // current_span = current_span.subspan(0,newsize);
         spans.push_back(current_span);
     }
     std::vector<point<T>> pts2; 
@@ -63,12 +63,12 @@ static void runChanId3(std::vector<point<T>>& pts1, size_t exponent, bool use_id
 
 DEF_HULL_IMPL({
 	.name = "chan_widea3", // Something like O(n loglog m) expected time on randomized inputs.
-	.runInt = std::bind(runChanId3<int64_t>, std::placeholders::_1, 3, false),
-	.runDouble = std::bind(runChanId3<double>, std::placeholders::_1, 3, false),
+	.runInt = std::bind(runChanId3<int64_t>, std::placeholders::_1, 2, false),
+	.runDouble = std::bind(runChanId3<double>, std::placeholders::_1, 2, false),
 });
 
 DEF_HULL_IMPL({
 	.name = "chan_refined", // Has O(n) expected time complexity on randomized inputs.
-	.runInt = std::bind(runChanId3<int64_t>, std::placeholders::_1, 3, true),
-	.runDouble = std::bind(runChanId3<double>, std::placeholders::_1, 3, true),
+	.runInt = std::bind(runChanId3<int64_t>, std::placeholders::_1, 2, true),
+	.runDouble = std::bind(runChanId3<double>, std::placeholders::_1, 2, true),
 });

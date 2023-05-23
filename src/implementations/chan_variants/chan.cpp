@@ -42,7 +42,7 @@ static bool Hull2D(std::vector<point<T>>& pts, long long m, long long H, bool us
 template <typename T>
 static void runChan(std::vector<point<T>>& pts, bool use_idea_1, bool use_idea_2) {
 	if (pts.size() <= 2) return;
-    long long t = 3;
+    long long t = 1;
     while (true) {
         // Refinement idea 2 from chans paper, put H = m/logm
         long long H = calcH(t, use_idea_2); // 2ˆ2ˆt (/2ˆt if use_idea_2) 
