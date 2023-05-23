@@ -6,6 +6,7 @@
 #include <cassert>
 #include "../../point.hpp"
 
+#include <iostream>
 
 // Adaption of Impl1 to work with span and return new length. Runs in O(n logn) time
 template <typename T>
@@ -59,6 +60,9 @@ inline long long Merge2DHulls(std::vector<std::span<point<T>>>& spans, std::vect
             while(indices[pi] < spans[pi].size()) { // We might need to loop back to index 0 on a hull, but never beyond that
                 point<T> cur = spans[pi][indices[pi]];
                 point<T> next = spans[pi][(indices[pi] + 1) % spans[pi].size()];
+                if (next==prevHullPoint) {
+                    break;
+                }
                 side orientation = cur.sideOfLine(next, prevHullPoint);
                 if (orientation == side::right || (orientation == side::on && (cur - prevHullPoint).lenmh() < (next - prevHullPoint).lenmh())) {
                     indices[pi]++;
@@ -72,6 +76,9 @@ inline long long Merge2DHulls(std::vector<std::span<point<T>>>& spans, std::vect
         lastHullUsed = p;
         for (size_t pi = 0; pi < p; pi++) {
             if(indices[pi] > spans[pi].size()) continue;
+            if (spans[pi][indices[pi] % spans[pi].size()] == prevHullPoint) {
+                continue;
+            }
             if (lastHullUsed == p) {
                 nextHullPoint = spans[pi][indices[pi] % spans[pi].size()];
                 lastHullUsed = pi;
@@ -84,7 +91,7 @@ inline long long Merge2DHulls(std::vector<std::span<point<T>>>& spans, std::vect
                 lastHullUsed = pi;
             }
         }
-        if (nextHullPoint == result[start_ind]) {
+        if (lastHullUsed == p || nextHullPoint == result[start_ind]) {
             if (in_place) {
                 for (long long idx = 0; idx < output_size; idx++) {
                     spans[0][idx] = result[start_ind+idx];
