@@ -21,9 +21,11 @@ static bool Hull2D(std::vector<point<T>>& pts, long long m, long long H, bool us
         spans.push_back(current_span);
     }
     
-    std::vector<point<T>> result;
-    if (Merge2DHulls(spans, result, H) > -1) {
-        std::swap(result, pts);
+    std::vector<point<T>> result(H+1);
+    long long try_size = Merge2DHulls(spans, result, 0, H);
+    if (try_size > -1) {
+        pts = result;
+        pts.resize(try_size);
         return true;
     }
 
@@ -45,7 +47,7 @@ static void runChan(std::vector<point<T>>& pts, bool use_idea_1, bool use_idea_2
     long long t = 1;
     while (true) {
         // Refinement idea 2 from chans paper, put H = m/logm
-        long long H = calcH(t, use_idea_2); // 2ˆ2ˆt (/2ˆt if use_idea_2) 
+        long long H = std::min((long long) pts.size(), calcH(t, use_idea_2)); // 2ˆ2ˆt (/2ˆt if use_idea_2) 
         long long m = calcM(t); // 2ˆ2ˆt
         if (Hull2D(pts, m, H, use_idea_1)) {
             return;

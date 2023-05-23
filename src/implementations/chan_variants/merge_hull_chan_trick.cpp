@@ -24,27 +24,28 @@ static void runMergeHullChanTrick(std::vector<point<T>>& pts1, size_t exponent) 
         // current_span = current_span.subspan(0,newsize);
         spans.push_back(current_span);
     }
-    std::vector<point<T>> pts2; 
-    pts2.reserve(pts1.size()); // Assert that pts2 never has to move the data. This would cause the spans to be invalid.
+    std::vector<point<T>> pts2(pts1.size()); // Assert that pts2 never has to move the data. This would cause the spans to be invalid.
 
     std::vector<point<T>> *a = &pts1, *b = &pts2; // a always points to vector currently containing the points.
     bool pts1_has_spans = true;
     while (spans.size() > 1) { // This will loop min(log(n), 2*log(h)) times
         pairwiseMerge(spans, exponent, *b); // Move spans from a to b
-        a->clear();
+        //a->clear();
         std::swap(a,b);
         pts1_has_spans = !pts1_has_spans;
         current_set_size *= exponent;
 
         long long H = ceil(sqrt(current_set_size));
-        if (Merge2DHulls(spans, *b, H) > -1) {
+        long long try_size = Merge2DHulls(spans, *b, 0, H);
+        if (try_size > -1) {
             pts1_has_spans = !pts1_has_spans;
             if (!pts1_has_spans) {
                 pts1 = pts2;
             }
+            pts1.resize(try_size);
             return;
         }
-        b->clear(); // Clear b again because the merge failed.
+        //b->clear(); // Clear b again because the merge failed.
     }
     if (!pts1_has_spans) {
         pts1 = pts2;

@@ -36,7 +36,7 @@ inline size_t monotone_chain(std::span<point<T>>& pts) {
 // Appends generated hull to result vector.
 // Hulls are assumed to be given in CCW order with first point being the leftmost point (lowest in case of ties).
 template <typename T>
-inline long long Merge2DHulls(std::vector<std::span<point<T>>>& spans, std::vector<point<T>>& result, long long H = -1, bool in_place = false) {
+inline long long Merge2DHulls(std::vector<std::span<point<T>>>& spans, std::vector<point<T>>& result, long long start_ind, long long H = -1, bool in_place = false) {
     size_t p = spans.size();
     std::vector<size_t> indices(p,0);
     long long output_size = 0;
@@ -49,16 +49,12 @@ inline long long Merge2DHulls(std::vector<std::span<point<T>>>& spans, std::vect
             lastHullUsed = pi;
         }
     }
-    if(in_place) {
-        result.clear();
-    }
-    size_t start_ind = result.size();
-    result.push_back(leftMostPoint);
+    result[start_ind] = leftMostPoint;
     output_size++;
     indices[lastHullUsed]++;
     for (long long i = 0; i != H; i++) {
         // For each input hull find tangent from result.back()
-        point<T> prevHullPoint = result.back();
+        point<T> prevHullPoint = result[start_ind+output_size-1];
         for (size_t pi = 0; pi < p; pi++) {
             while(indices[pi] < spans[pi].size()) { // We might need to loop back to index 0 on a hull, but never beyond that
                 point<T> cur = spans[pi][indices[pi]];
@@ -91,12 +87,12 @@ inline long long Merge2DHulls(std::vector<std::span<point<T>>>& spans, std::vect
         if (nextHullPoint == result[start_ind]) {
             if (in_place) {
                 for (long long idx = 0; idx < output_size; idx++) {
-                    spans[0][idx] = result[idx];
+                    spans[0][idx] = result[start_ind+idx];
                 }
             }
             return output_size;
         }
-        result.push_back(nextHullPoint);
+        result[start_ind+output_size] = nextHullPoint;
         output_size++;
         indices[lastHullUsed]++;
     }
@@ -114,24 +110,26 @@ template <typename T>
 inline void pairwiseMerge(std::vector<std::span<point<T>>>& spans, size_t exponent, std::vector<point<T>>& b, bool in_place = false) {
     std::vector<std::span<point<T>>> output;
     std::vector<std::span<point<T>>> temp;
+    long long b_start = 0;
     for (size_t i = 0; i < spans.size(); i++) {
         temp.push_back(std::move(spans[i]));
         if (temp.size() == exponent) {
-            long long size = Merge2DHulls(temp, b, -1, in_place);
+            long long size = Merge2DHulls(temp, b, b_start, -1, in_place);
             if (in_place) {
                 output.push_back(temp[0].subspan(0,size));
             } else {
-                output.push_back(std::span<point<T>>(b.end()-size, b.end()));
+                output.push_back(std::span<point<T>>(b.begin()+b_start, b.begin()+b_start+size));
+                b_start += size;
             }
             temp.clear();
         }
     }
     if (temp.size() >= 1) {
-        long long size = Merge2DHulls(temp, b, -1, in_place);
+        long long size = Merge2DHulls(temp, b, b_start, -1, in_place);
         if (in_place) {
             output.push_back(temp[0].subspan(0,size));
         } else {
-            output.push_back(std::span<point<T>>(b.end()-size, b.end()));
+            output.push_back(std::span<point<T>>(b.begin()+b_start, b.begin()+b_start+size));
         }
     }
     spans = std::move(output);

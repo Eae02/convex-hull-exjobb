@@ -27,13 +27,12 @@ static void runMergeHull(std::vector<point<T>>& pts1, size_t exponent, bool redu
         spans.push_back(current_span);
     }
     if (reduce_copy) { // Allocate 2 vectors, and alternatively read from one and write to the other. Less copying of data
-        std::vector<point<T>> pts2; 
-        pts2.reserve(pts1.size()); // Make sure that pts2 never has to reallocate the data. This would cause the spans to become invalid.
+        std::vector<point<T>> pts2(pts1.size()); // Make sure that pts2 never has to reallocate the data. This would cause the spans to become invalid.
         std::vector<point<T>> *a = &pts1, *b = &pts2; // a always points to vector currently containing the points.
         bool pts1_has_spans = true;
         while (spans.size() > 1) {
             pairwiseMerge(spans, exponent, *b); // Spans move from a to b
-            a->clear();
+            // a->clear();
             std::swap(a,b); 
             pts1_has_spans = !pts1_has_spans;
         }
@@ -41,7 +40,7 @@ static void runMergeHull(std::vector<point<T>>& pts1, size_t exponent, bool redu
             pts1 = pts2;
         }
     } else { // Simple implementation. Computed hulls are temporarily written to temp and then back to pts vector.
-        std::vector<point<T>> temp; // Hulls are temporarily written here when computed.
+        std::vector<point<T>> temp(pts1.size()); // Hulls are temporarily written here when computed.
         while (spans.size() > 1) {
             pairwiseMerge(spans, exponent, temp, true);
         }
@@ -54,8 +53,8 @@ static void runMergeHull(std::vector<point<T>>& pts1, size_t exponent, bool redu
 
 DEF_HULL_IMPL({
 	.name = "merge_hull_old",
-	.runInt = std::bind(runMergeHull<int64_t>, std::placeholders::_1, 3, false),
-	.runDouble = std::bind(runMergeHull<double>, std::placeholders::_1, 3, false),
+	.runInt = std::bind(runMergeHull<int64_t>, std::placeholders::_1, 2, false),
+	.runDouble = std::bind(runMergeHull<double>, std::placeholders::_1, 2, false),
 });
 
 

@@ -27,8 +27,7 @@ static void runChanId3(std::vector<point<T>>& pts1, size_t exponent, bool use_id
         // current_span = current_span.subspan(0,newsize);
         spans.push_back(current_span);
     }
-    std::vector<point<T>> pts2; 
-    pts2.reserve(pts1.size()); // Assert that pts2 never has to move the data. This would cause the spans to be invalid.
+    std::vector<point<T>> pts2(pts1.size()); // Assert that pts2 never has to move the data. This would cause the spans to be invalid.
 
     std::vector<point<T>> *a = &pts1, *b = &pts2; // a always points to vector currently containing the points.
     bool pts1_has_spans = true;
@@ -37,7 +36,7 @@ static void runChanId3(std::vector<point<T>>& pts1, size_t exponent, bool use_id
         m = calcM(t);
         while (current_set_size < m && spans.size() > 1) {
             pairwiseMerge(spans, exponent, *b); // Move spans from a to b
-            a->clear();
+            //a->clear();
             std::swap(a,b);
             pts1_has_spans = !pts1_has_spans;
             current_set_size *= exponent;
@@ -45,14 +44,16 @@ static void runChanId3(std::vector<point<T>>& pts1, size_t exponent, bool use_id
         if (spans.size() == 1) break; // Early break to avoid unnecessary computations
 
         long long H = calcH(t, use_idea_2); // 2^2^t or 2^(2^t-t)
-        if (Merge2DHulls(spans, *b, H) > -1) {
+        long long try_size = Merge2DHulls(spans, *b, 0, H);
+        if (try_size > -1) {
             pts1_has_spans = !pts1_has_spans;
             if (!pts1_has_spans) {
                 pts1 = pts2;
             }
+            pts1.resize(try_size);
             return;
         }
-        b->clear(); // Clear b again because the merge failed.
+        //b->clear(); // Clear b again because the merge failed.
     }
     if (!pts1_has_spans) {
         pts1 = pts2;
