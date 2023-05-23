@@ -1,5 +1,5 @@
 DATASETS = ["circle", "disk", "square"]
-METRIC = "cacheMisses"
+METRIC = "time"
 
 import testlib
 import sys
@@ -19,12 +19,16 @@ else:
 	maxThreads = int(testlib.getcmdarg("t", 8))
 	threads = [i for i in range(1, maxThreads + 1)]
 
+datasetSize = "large"
+if "-med" in sys.argv:
+	datasetSize = "medium"
+
 measurements = []
 for dataset in DATASETS:
 	measurements.append([])
 	for mi, th in enumerate(threads):
-		print(f"running {implName} on {dataset} with {th} threads...", end="", flush=True, file=sys.stderr)
-		t = testlib.runOnAllFiles([dataset], implName, runs=runs, maxThreads=th, metric=METRIC)
+		print(f"running {implName} on {dataset}/{datasetSize} with {th} threads...", end="", flush=True, file=sys.stderr)
+		t = testlib.runOnAllFiles([dataset], implName, runs=runs, maxThreads=th, metric=METRIC, datasetSize=datasetSize)
 		print(f" done! ({t:.2f})", file=sys.stderr)
 		measurements[-1].append(t)
 
