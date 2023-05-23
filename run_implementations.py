@@ -67,10 +67,10 @@ def main():
     # implementations = ["cgal_akl_toussaint", "cgal_graham", "chan_plain", "chan_refined", "merge_hull_reduce_copy", "dc_preparata_hong_rewrite", "impl1", "impl1_par", "qh_rec", "qh_recpar", "qh_avx"]
 
     # All interesting implementations for our thesis
-    implementations = ["chan", "chan_refined", "mc", "merge_hull", "merge_hull_chan_trick", "qh_bf_nxp", "qh_bf_ss", "qh_bf_xp", "qh_hybrid_esx", "qh_hybrid_jw", "qh_hybrid_mc", "qh_rec_esx", "qh_rec_nxp", "qh_rec_ss", "qh_rec_xp", "qh_rec_xyp", "qh_soa"]
+    implementations = ["chan", "chan_refined", "mc", "merge_hull", "merge_hull_chan_trick", "qh_bf_nxp", "qh_bf_ss", "qh_bf_xp", "qh_hybrid_esx", "qh_hybrid_jw", "qh_hybrid_mc", "qh_rec_esx", "qh_rec_nxp", "qh_rec_ss", "qh_rec_xp", "qh_rec_xyp", "qh_soa", "qh_rec2_ss"]
     implementations.extend(["cgal_akl_toussaint","cgal_bykat", "cgal_eddy", "cgal_graham", "cgal_jarvis", "qhull"])
-    #implementations.extend(["dc_preparata_hong", "impl1", "ouellet", "jarvis_wrap"])
-    #implementations.extend(["impl1_par", "qh_recpar_nxp", "qh_recpar_xp", "qhp_bf", "qhp_bf_nr", "qhp_bf_seq"])
+    implementations.extend(["dc_preparata_hong", "impl1", "ouellet", "jarvis_wrap", "qh_hybrid_esx:D3"])
+    implementations.extend(["impl1_par", "qh_recpar_nxp", "qh_recpar_xp", "qhp_bf", "qhp_bf_nr", "qhp_bf_seq"])
     
     
     # implementations = ["qh_rec", "qh_rec_nxp", "qh_rec_esx", "qh_hybrid_esx:D1", "qh_hybrid_esx:D2", "qh_hybrid_esx:D3"]
