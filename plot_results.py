@@ -18,7 +18,7 @@ linestyles = ['solid', 'dashed', 'dashdot', (0,(10,3)), (0,(5,1)), (0,(8,1)), (0
 
 def plot_results(file_name = 'results/times.csv', label_colors  = None):
     # Plots for thesis
-    #label_colors = {'chan':('Chan','red'), 'chan_refined': ('Refined Chan','green'), 'merge_hull': ('MergeHull','orange')}
+    # label_colors = {'chan':('Chan','red'), 'chan_refined': ('Refined Chan','limegreen'), 'merge_hull': ('MergeHull','orange')}
     label_colors = {'chan_refined': ('Refined Chan','limegreen'), 'mc': ('Monotone Chain','red'), 'cgal_graham': ('CGAL Graham','darkred'), 'cgal_akl_toussaint':('CGAL Akl Toussaint','purple'),'qhull':('Qhull','navy'), 'qh_rec_esx': ('Depth Quickhull Initial Sort','deeppink'),'qh_rec_nxp': ('Depth Quickhull No x partition','blue')}
     
     # Plot more chan variants
@@ -33,22 +33,24 @@ def plot_results(file_name = 'results/times.csv', label_colors  = None):
 
     # Plot from square dataset
     square_times = df.loc[df['test_generator']=='gensquare.bin'].drop(columns=['seed','test_generator'])
+    print(square_times.head())
+    print(square_times.columns)
     square_times = square_times.groupby(by=['implementation_name','n']).mean().reset_index()
     square_times['time_per_point'] = square_times['compute_time(ms)']/square_times['n']*1000
     print(square_times.head())
     print(square_times.columns)
-    fig, ax = plt.subplots(figsize=(8,6))
+    fig, ax = plt.subplots(figsize=(6,4.5))
     for label, df_2 in square_times.groupby(['implementation_name']):
         if label_colors == None:
             df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, color = cmap((myHash(label)%num_colors)/float(num_colors)), linestyle = linestyles[myHash(label)%len(linestyles)])
         elif label in label_colors:
             label,color = label_colors[label]
             df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, color = color)
-    plt.title("Running time for different planar convex hull algorithms on square dataset on POWER")
-    plt.ylabel("Computation time per input point (us)")
-    plt.legend(handlelength = 10)
+    plt.title("Compute time for planar CH on square dataset")
+    plt.ylabel("Compute time per point (us)")
+    #plt.legend(handlelength = 10)
     ax.set_ylim(ymin=0, ymax = min(0.5, 1.05 * square_times['time_per_point'].max()))
-    plt.savefig('results/square_plot')
+    plt.savefig('results/square_plot.pdf')
 
     # Plot from circle dataset
     circ_times = df.loc[df['test_generator']=='gencirc.bin'].drop(columns=['seed','test_generator'])
@@ -61,6 +63,7 @@ def plot_results(file_name = 'results/times.csv', label_colors  = None):
     if not doubleplot:
         # Just one plot
         fig, ax = plt.subplots(figsize=(8,6))
+        plt.title("Compute time for planar CH on circle dataset")
     else:
         # Broken Axis to display outlier
         fig, (ax2, ax) = plt.subplots(2, 1, sharex=True, figsize=(8,6))
@@ -74,17 +77,20 @@ def plot_results(file_name = 'results/times.csv', label_colors  = None):
             df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, color = color)
             if doubleplot:
                 df_2.plot(x = 'n', y = 'time_per_point',ax=ax2, label=label, logx=True, color = color)
-    fig.suptitle("Running time for different planar convex hull algorithms on circle dataset on POWER")
-    plt.ylabel("Computation time per input point (us)")
-    plt.legend(handlelength = 10)
-    ax.set_ylim(ymin=0, ymax = min(0.8, 1.05 * circ_times['time_per_point'].max()))
+
+    plt.ylabel("Compute time per point (us)")
+    #plt.legend(handlelength = 10)
+    ax.set_ylim(ymin=0, ymax = min(1, 1.05 * circ_times['time_per_point'].max()))
     #For double plotting
     if doubleplot:
+        ax2.title.set_text("Compute time for planar CH on circle dataset")
         ax.get_legend().remove()
         ax2.set_ylim(ymin=2.2, ymax = 3)
         ax.spines['top'].set_visible(False)
         ax2.spines['bottom'].set_visible(False)
         ax2.xaxis.tick_top()
+        #ax2.set_xticks([])
+        #ax2.set_xticks([], minor=True)
         ax2.tick_params(labeltop=False)  # don't put tick labels at the top
         ax.xaxis.tick_bottom()
         d = .015  # how big to make the diagonal lines in axes coordinates
@@ -97,7 +103,7 @@ def plot_results(file_name = 'results/times.csv', label_colors  = None):
         ax.plot((-d, +d), (1 - d, 1 + d), **kwargs)  # bottom-left diagonal
         ax.plot((1 - d, 1 + d), (1 - d, 1 + d), **kwargs)  # bottom-right diagonal
 
-    plt.savefig('results/circ_plot')
+    plt.savefig('results/circ_plot.pdf')
 
     # Plot from disk dataset
     disk_times = df.loc[df['test_generator']=='gendisk.bin'].drop(columns=['seed','test_generator'])
@@ -106,18 +112,18 @@ def plot_results(file_name = 'results/times.csv', label_colors  = None):
     print(disk_times.head())
     print(disk_times.columns)
 
-    fig, ax = plt.subplots(figsize=(8,6))
+    fig, ax = plt.subplots(figsize=(6,4.5))
     for label, df_2 in disk_times.groupby(['implementation_name']):
         if label_colors == None:
             df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, color = cmap((myHash(label)%num_colors)/float(num_colors)), linestyle = linestyles[myHash(label)%len(linestyles)])
         elif label in label_colors:
             label,color = label_colors[label]
             df_2.plot(x = 'n', y = 'time_per_point',ax=ax, label=label, logx=True, color = color)
-    plt.title("Running time for different planar convex hull algorithms on disk dataset on POWER")
-    plt.ylabel("Computation time per input point (us)")
-    plt.legend(handlelength = 10)
+    plt.title("Compute time for planar CH on disk dataset")
+    plt.ylabel("Computation time per point (us)")
+    #plt.legend(handlelength = 10)
     ax.set_ylim(ymin=0, ymax = min(0.75, 1.05 * disk_times['time_per_point'].max()))
-    plt.savefig('results/disk_plot')
+    plt.savefig('results/disk_plot.pdf')
 
 if __name__ == "__main__":
     if len(sys.argv)>1:
