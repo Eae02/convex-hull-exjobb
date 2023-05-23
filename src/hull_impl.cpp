@@ -1,6 +1,8 @@
 #include "hull_impl.hpp"
 
 #include <charconv>
+#include <chrono>
+#include <iostream>
 
 std::vector<HullImpl>* hullImplementations;
 
@@ -22,4 +24,19 @@ std::optional<int> getImplArgInt(std::string_view argPrefix) {
 			return value;
 	}
 	return {};
+}
+
+static std::vector<std::pair<std::string_view, std::chrono::high_resolution_clock::time_point>> intermediateTimes;
+
+void addIntermediateTime(std::string_view name) {
+	intermediateTimes.emplace_back(name, std::chrono::high_resolution_clock::now());
+}
+
+void printIntermediateTimes(std::chrono::high_resolution_clock::time_point startTime) {
+	if (intermediateTimes.empty())
+		return;
+	std::cerr << "intermediate times:\n";
+	for (auto [name, time] : intermediateTimes) {
+		std::cerr << "| " << name << ": " << std::chrono::duration<double, std::milli>(time - startTime).count() << " ms\n";
+	}
 }

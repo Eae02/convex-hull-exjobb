@@ -31,6 +31,8 @@ std::optional<int> getImplArgInt(std::string_view argPrefix);
 
 int _defHullImpl(HullImpl impl);
 
+void addIntermediateTime(std::string_view name);
+
 #define STR_CONCAT_IMPL(x, y) x##y
 #define STR_CONCAT(x, y) STR_CONCAT_IMPL(x, y)
 

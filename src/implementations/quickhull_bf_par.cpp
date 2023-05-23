@@ -87,6 +87,8 @@ void quickhullParallel(std::vector<pointd>& pts, bool removePoints) {
 		numPoints = newPtsEndIt - pts.begin();
 	};
 	
+	addIntermediateTime("init");
+	
 	do {
 		std::transform_inclusive_scan(ep,
 			makeCountingIterator(0), makeCountingIterator(numPoints), &distsPrefixMax[0],
