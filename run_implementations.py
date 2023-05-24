@@ -34,9 +34,9 @@ def run_implementations(implementations : List[str]):
                         if implementation_name in timed_out:
                             continue
                         try:
-                            time_limit = max(3, 2*n/1000000) #3 seconds or 2 us per input point
+                            time_limit = max(6, 4*n/1000000) #3 seconds or 2 us per input point
                             if implementation_name != 'qhull':
-                                compute_time = testlib.run(binary_test_case_path, implementation_name, timeout = 2*time_limit) 
+                                compute_time = testlib.run(binary_test_case_path, implementation_name, timeout = time_limit) 
                             else:
                                 compute_time = testlib.run(test_case_path, implementation_name, timeout = time_limit) 
                         except subprocess.TimeoutExpired:
@@ -67,9 +67,9 @@ def main():
     # implementations = ["cgal_akl_toussaint", "cgal_graham", "chan_plain", "chan_refined", "merge_hull_reduce_copy", "dc_preparata_hong_rewrite", "impl1", "impl1_par", "qh_rec", "qh_recpar", "qh_avx"]
 
     # All interesting implementations for our thesis
-    implementations = ["chan", "chan_refined", "mc", "merge_hull", "merge_hull_chan_trick", "qh_bf_nxp", "qh_bf_ss", "qh_bf_xp", "qh_hybrid_esx", "qh_hybrid_jw", "qh_hybrid_mc", "qh_rec_esx", "qh_rec_nxp", "qh_rec_ss", "qh_rec_xp", "qh_rec_xyp", "qh_soa", "qh_rec2_ss"]
+    implementations = ["chan", "chan_refined", "chan_refined_optimized", "mc", "merge_hull", "qh_bf_nxp", "qh_bf_ss", "qh_bf_xp", "qh_hybrid_esx", "qh_hybrid_jw", "qh_hybrid_mc", "qh_rec_esx", "qh_rec_nxp", "qh_rec_ss", "qh_rec_xp", "qh_rec_xyp", "qh_soa", "qh_rec2_ss", "qh_hybrid_esx:D3"]
     implementations.extend(["cgal_akl_toussaint","cgal_bykat", "cgal_eddy", "cgal_graham", "cgal_jarvis", "qhull"])
-    implementations.extend(["dc_preparata_hong", "impl1", "ouellet", "jarvis_wrap", "qh_hybrid_esx:D3"])
+    # implementations.extend(["dc_preparata_hong", "impl1", "ouellet", "jarvis_wrap", "merge_hull_chan_trick"])
     implementations.extend(["impl1_par", "qh_recpar_nxp", "qh_recpar_xp", "qhp_bf", "qhp_bf_nr", "qhp_bf_seq"])
     
     
