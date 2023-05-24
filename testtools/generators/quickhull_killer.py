@@ -1,5 +1,7 @@
+#Numerically stable quickhull killer, recurses to a depth of 836.
+
 import math
-#Numerically stable quickhull killer, but doesn't recieve same depth.
+
 
 S = 10**305     # stretch in y direction
 factor = -0.5698   # Best factor is -0.5698. Solution to x^4+x^2+x-1 = 0 is 0.56984...
@@ -9,7 +11,7 @@ eps = 10**-204  # Smallest angle that we allow
 cutoff_quadratic_est = 10**-2 # 1-cos will have bad precision for small angles.
 
 points = []
-n = 1000000  
+n = 100000 
 
 angle = math.pi/2
 while abs(angle) > eps:
